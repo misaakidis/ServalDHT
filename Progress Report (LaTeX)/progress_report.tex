@@ -1,0 +1,139 @@
+\documentclass[12pt,a4paper,oneside]{article}
+\usepackage{graphicx}
+\usepackage{tikz}
+
+\begin{document}
+
+%Insert titlepage
+\input{./title.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%First page 
+\begin{center}
+{\large {\bf  ServalDHT: A Decentralized Service Resolution\\ Service for the Serval Architecture}\\[0.5cm] by \\[0.5cm] Isaakidis Marios - 2009437805}
+ ~\\[0.5cm]
+Submitted to the Department of Electrical Engineering, Computer Engineering and Informatics on December 2012, in partial fulfillment of the requirements for the degree of Computer Engineering and Informatics
+\end{center}
+
+\vfill
+
+{\Large \bf \noindent Introduction} \\[0.5cm]
+The aim of this report is to give a thorough depiction of the current progress in the preparation of ServalDHT, a decentralized system for resolving serviceIDs in the Serval Architecture \cite{Nordstrom2012}. ServalDHT utilizes Distributed Hash Tables as a peer-powered DNS alternative in order to enable users locate service providers using a human readable service name. Because of its nature, ServalDHT faces issues of security, agility and robustness in real-world scenarios, and experiments should demonstrate that it confronts them with great success before it can be widely adapted.\\
+\indent This report comes as a result of methodical study of existing systems and reasoning on how to propose a solid, grounded on well-known resources yet innovative solution to improve their scalability and adaptability. First, in sections 1 and 2, it is discussed the general idea of the problems this thesis expects to elucidate, the importance of them and their consequences. Then, in the following two sections, it is outlined the theoretical background acquired by analyzing extant proposals and researching on relative topics.\\
+\indent Finally, in sections 5 and 6 follows a brief introduction on the proposed solution, its main features and how it is going to diminish the inconveniences stated before, along with the expected results of the future implementation and its strain testing.
+
+~\\[0.5cm]
+{\large
+\noindent Thesis Supervisor: Dr. Sirivianos Michael\\
+\noindent Title: Lecturer at CUT's EEIT Department}
+
+\newpage
+\tableofcontents
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Problem Definition}
+The concept of Internet has radically changed since its first onset, around half a century ago; millions of multi-homed users, possibly moving across networks, are asking for data and services offered by multiple servers, which can be replicated and situated in various geographical locations. Yet, due to legacy reverse compatibility reasons, bureaucracy obstructions and the compulsion of large scale testing and deployment, only a few modifications managed to consolidate and provide the framework for communicating in the largest computer network. This situation is leading to erratic band-aids where network administrators and developers overload the existing network abstractions, like the IP addresses and ports, in order to provide the supplementary functionality needed by a network with dynamic users and where services and data become first-class citizens.\\
+\indent In addition, it is observed that the freedom in Internet is menacingly encircled by equivocal organizations trying to be the ones who will win the authorship and control over its content and autonomy.\\
+\indent In the subsections following we take a closer look to the problems ServalDHT intents to elucidate divided by their main source.
+
+\subsection{An obsolete network stack}
+The network TCP/IP stack which is still used today was designed in an era when end hosts where static in specific topological positions, communicating over a sole network interface, accessing services like telnet and ftp. The problems by this approach start to accumulate even in the lowest layers, and specifically the Network Layer.
+\paragraph{Network Layer} The Network Layer is responsible for packet forwarding, including routing through intermediate routers, and it does so using a hierarchical IP addressing scheme. This bind however of a topological-aware IP address to an interface does not manage well with the notion of mobility, where interfaces are not necessarily tied to a specific network. Nevertheless, an IP address cannot identify forever a host since after a disconnection, the IP address is renewed to one that was most likely previously used by another interface of another machine.
+\pagebreak
+\paragraph{Transport Layer} The Transport Layer provides end-to-end communication services for applications within a layered architecture of network components and protocols. This is achieved by demultiplexing incoming packets to a socket using the five-tuple (remote IP, remote port, local IP, local port, protocol). Since local IP is tied to a unique interface, support for migration or multi-path traffic over multiple network interfaces has to be implemented individually by the protocol or the above layers. Never to forget that every time a renewal of IP address occurs the connection has to be reestablished or at least the other end host has to be notified somehow for the new address. For the case of load balancers, every single packet, even from a already established connection, has to pass through them. This results in a need for high computational power, causing router stretching and increasing latency times. Also, without serving any particular reason, the remote IP address and port have to be exposed to the upper layers.
+\paragraph{Application Layer}  The Application Layer is an abstraction layer reserved for communication protocols and methods designed for process-to-process communications across an Internet Protocol (IP) computer network. Because of the overload of IP addresses and ports on lower layers, the Application Layer has to cache them and handle them too. At the same time, violating the principle of software reuse, each application has to implement from scratch all the logic for the additional functionality of modern Internet (migration, multiple clients support, multihoming, load balancing, mobility etc.), in order to offer it to its users.\\
+\indent Another complication in the Application Layer can be detected during the initiation of a connection, and especially during the mapping of a service identifier to an IP address. As of now, applications must use out-of-band services like DNS and follow preconcerted conventions before the commencement of the connection. Additionally, by caching the IP address of the service provider instead or re-resolving the service identifier, the service provider is constrained in changing its IP address (in cases of migration, machine or network failure, multihoming etc.), as it will result to the termination of the established connections and a slow failover, considering that some time is needed for the DNS distributed servers to be updated and to respond correctly to the clients.
+
+\newpage
+\subsection{The need for Service-Centric Networking}
+In the very early Internet, "calling" the IP address of a machine would get you to one of the killer applications of that time, telnet or ftp. Those services were run by a single machine and could not accept simultaneous users. However this approach is not common nowadays, when hundreds of users want to search a keyword in their favorite search engine at the same time. They do not care about the actual location on the map of the service provider, or which of the machines is serving them accessing a distributed database. Neither the database of a search engine is that small that can be stored in a single hard disk nor a sole machine can respond to all those requests. Still such services exist and manage well with the always increasing demand. \\
+\indent It is only because developers and network administrators are utilizing middleboxes and implementing intermediate systems in order to overcome the deficiencies caused by the superseded network abstractions. However, this comes with a cost. Developers have to work with primitive, low-level APIs and to handle many cases of downfalls, needing many costly man-hours, being prone to errors, repeating the same procedure again and again diverging from efficient code generation. System administrators have to master all those intermediate systems and make them work agreeable. Routers route packets containing both data and network identifiers without the ability of policy governed delegation. Replicated service instances run autonomously without a way to directly communicate with each other in a network level. Master nodes in clusters shoulder the responsibility of the reinstatement over network failures in a wavering manner. Middleboxes evoke large time delays, they need extra hardware, power, space. And the list goes on.\\
+\indent To sum up, users nowadays want to access a service or to retrieve some data. The abstraction of a service can suit well any use of Internet anyone can think of; watch a video, send an e-mail, make a phone call, remotely access a distant machine. Unfortunately so far there is no standardized practice for effectively developing and administering services, abandoning developers to create their own mercurial quick fixes, an expensive, time consuming, inclined to mistakes and complex in orchestration solution.
+
+\newpage
+\subsection{The challenges of private, hierarchical DNS}
+Over time, the Internet has gathered a great power over diverse societies. People all around the world are trusting and accessing it in order to read about the news, form a political opinion, solve problems in their working environment, do market research. However, while the Internet continuously affirms its prominent value, it is a surprise how vulnerable it remains to arbitrary (inter)national control and malicious attacks, due to the fact that it is erringly administered by private organizations and its restrained, hierarchical structure. \\
+\indent One of the fundamental components of the the functionality of the Internet is the Domain Name System (DNS). It is used to map human readable names of hosts to numerical IP addresses needed for the purpose of locating service providers around the world and effectively routing traffic to them. Those identifiers, called domain names, are annually purchased and assigned through the Internet Registry by the private organization ICANN (Internet Corporation for Assigned Names and Numbers). In addition to being peremptory, this domination also grants to ICANN the privilege of overseeing the content of Internet, by cutting out or declining registration to "undesirable" domains. Nevertheless, various incidents of catachresis are being observed the last years, with governments like the Egyptian one that shut down its DNS servers to muzzle the protesters in 2011, and the Chinese which still blacklists certain domains as a mechanism for Internet censorship.\\
+\indent Moreover, the current Domain Name Service is based on an hierarchical architecture, where (domain name, IP) tuples are cached in midway servers. This is causing great problems when a service provider has to renew its IP address, because even if a DNS root server is updated, users still get the old cached IP address yet after hours. This time delay can increase to days in cases where recursive DNS servers do not follow the specified TTL values for their cached entries. Consequently, hosts are restrained from taking advantage of functionality like multihoming and (virtual machine) migration. For the same reason, in cases of machine failure, the failover will take a long time, returning in the meanwhile a server unreachable response. \\
+\indent Besides, inevitably imitating the hierarchical architecture for domain resolution, autonomous networks must have exclusive, trusted machines offering an analogous service all the time. This is not always desired, for example in Metropolitan Area Networks (MAN) where ranking does not make sense.\\
+\indent Other problems related to DNS bear upon the lack of a widely adopted protocol to correctly verify the real identity of service hosts. DNS has been proved fallible to various attacks, like (Distributed) Denial of Service attacks (known as DDoS and DoS attacks), Cache Poisoning (or DNS Spoofing) etc., which aim on deliberately redirecting requests to malevolent hosts.
+
+\newpage%
+\subsection{A unified control and data plane}
+Split those two
+\\Software Defined Networking
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Importance of the Problem}
+New solutions copy the current stack so changes should be made as soon as possible
+\\Necessary benefits for users (multiplicity and dynamism) and for developers (easy, time and money saving, walk through)
+\\Administrators must have a better control over the network
+\\Freedom in Internet, especially after social phenomenon (news write much about it, after SOPA PIPA etc)
+\\Autonomous networks need this for service resolution
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Description of Relative Systems}
+\subsection{The Serval Architecture}
+More information about the Serval Architecture can be found in the presentation in the Appendix.
+\\TODO: Complete this section, maybe add HIP, Chord and OpenFlow
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Review of Relative Bibliography}
+ServalDHT is a multifaceted architecture that combines ideas from a wide spectrum of topics, including but no limited to Large Scale Network Architectures, Network Protocol Layers, Service-Centric Networking, Software Defined Networking, Distributed Hash Table algorithms and security issues of their various implementations, Peer-To-Peer Lookup Services as a replacement to legacy DNS etc. Therefore references should contain an adequate number of publications on all those themes.\\
+\indent The publications that have been used so far as a source of information follow in section 7. Brief summaries can be found in Appendix at the end of the report.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Introduction to the Proposed Solution}
+User Serval as it is, but with a Distributed Service Resolution Service
+\\Based on DHT algorithms
+\\Run by tier-1 and ISPs, or by users in Autonomous networks
+\\Secure identifiers
+\\Flat namespace
+\\Gets serviceID and
+\\- either returns the (IP,Port) back to the client
+\\- or forwards the packet directly to the service provider
+\\- caches the (serviceID, IP) tuple for future use
+\\Incrementally deployable and backwards compatible
+\\written in C, running in the user space
+\\accept service registration, checks HIP and inform the relative nodes
+\\About the Service Controller:
+\\will be running as a daemon in the userspace
+\\will communicate with ServalDHT to resolve serviceIDs (hashed service names)
+\\will enable delegation, load balancing etc as modules (maybe a configuration file?)
+\\Draw a FSM for the SRS (http://madebyevan.com/fsm/)
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Expected Results}
+1. Implement Service Controller
+\\2. Implement ServalDHT SRS
+\\3. Results of deployment in PlanetLab
+\\4. Start preparing an RFC?
+\\See how DHTs can replace hierarchical DNS?
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Bibliography}
+\nocite{*}
+\bibliographystyle{plain}
+\renewcommand{\refname}{}
+\bibliography{bibliography}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\thispagestyle{empty}
+{\Huge \bf APPENDIX}
+\newpage
+
+\end{document}
