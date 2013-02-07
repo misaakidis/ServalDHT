@@ -37,6 +37,8 @@ The aim of this report is to give a thorough depiction of the current progress i
 
 \newpage
 \tableofcontents
+%\listoffigures
+%\listoftables
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -69,16 +71,19 @@ Over time, the Internet has gathered a great power over diverse societies. Peopl
 \indent Besides, inevitably imitating the hierarchical architecture for domain resolution, autonomous networks must have exclusive, trusted machines offering an analogous service all the time. This is not always desired, for example in Metropolitan Area Networks (MAN) where ranking does not make sense.\\
 \indent Other problems related to DNS bear upon the lack of a widely adopted protocol to correctly verify the real identity of service hosts. DNS has been proved fallible to various attacks, like (Distributed) Denial of Service attacks (known as DDoS and DoS attacks), Cache Poisoning (or DNS Spoofing) etc., which aim on deliberately redirecting requests to malevolent hosts.
 
-\newpage%
+\newpage
 \subsection{A unified control and data plane}
+Networks are a great part of the computer society even since the beginning of computers.
+Administering networks should be straight-forward. 
 Split those two
 \\Proprietary technologies, lack of APIs (programmabe interfaces) or proper abstractions, non-scalable, inflexible, and troublesome to learn combine administer
 \\Complexity because of many discortant developed protocols
 \\Stops innovation and agility in network architecture development
 \\Does not cope well with mobile users, server virtualization, cloud services
 \\Today’s applications access different databases and servers, creating a flurry of “east-west” machine-to-machine traffic before returning data to the end user device in the classic “north-south” traffic pattern.
-\\Require device-level management and manual processes (time! money! availability! errors!
+\\Require device-level management and manual processes (time! money! availability! errors!)
 \\resolve newly observed, constantly arising problems in the current Internet?
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
@@ -94,14 +99,36 @@ New solutions copy the current stack so changes should be made as soon as possib
 \newpage
 \section{Description of Relative Systems}
 \subsection{The Serval Architecture}
-More information about the Serval Architecture can be found in the presentation in the Appendix.
-\\TODO: Complete this section, maybe add HIP, Chord and OpenFlow
+\subsubsection{Proposed abstractions}
+\subsubsection{Serval Network Stack}
+\subsubsection*{Service Controller}
+\subsubsection*{Service Access Layer}
+\subsubsection{Application portability and incremental deployment}
+\subsubsection{Service Resolution in the Serval architecture}
+\footnote{More information about the Serval Architecture can be found in the presentation in the Appendix.}
+TODO: Complete this section, maybe add HIP, Chord and OpenFlow
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \section{Review of Relative Bibliography}
 ServalDHT is a multifaceted architecture that combines ideas from a wide spectrum of topics, including but no limited to Large Scale Network Architectures, Network Protocol Layers, Service-Centric Networking, Software Defined Networking, Distributed Hash Table algorithms and security issues of their various implementations, Peer-To-Peer Lookup Services as a replacement to legacy DNS etc. Therefore references should contain an adequate number of publications on all those themes.\\
 \indent The publications that have been used so far as a source of information follow in section 7. Brief summaries can be found in Appendix at the end of the report.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Rethinking the Internet experience}
+%I HAVE A DREAM
+Cloud computing
+\\Modularity
+\\anonymity, privacy
+\\authentication, accountability, encryption, security
+\\no middlewares
+\\TCP/IP stack data, controller functionality
+\\subnetworks
+\\mobility and multihoming
+\\independent from organizations
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -126,7 +153,6 @@ User Serval as it is, but with a Distributed Service Resolution Service
 \\Draw a FSM for the SRS (http://madebyevan.com/fsm/)
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \section{Expected Results}
@@ -145,10 +171,12 @@ User Serval as it is, but with a Distributed Service Resolution Service
 \renewcommand{\refname}{}
 \bibliography{bibliography}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
 {\Huge \bf APPENDIX}
+\addcontentsline{toc}{section}{APPENDIX}
 \newpage
 
 \end{document}
