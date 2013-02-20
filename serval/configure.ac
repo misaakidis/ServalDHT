@@ -304,6 +304,7 @@ AC_CONFIG_FILES([Makefile
 	src/libservalctrl/java/src/Makefile
 	src/libserval/Makefile
 	src/servd/Makefile
+	src/servaldht/Makefile
 	src/translator/Makefile
 	src/tools/Makefile
 	src/test/Makefile

@@ -11,6 +11,7 @@ SUBDIRS += \
 	libservalctrl \
 	test \
 	servd \
+	servaldht \
 	translator \
 	tools
 
