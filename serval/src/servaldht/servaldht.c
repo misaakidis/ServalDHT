@@ -187,6 +187,13 @@ static int daemonize(void)
 	return 0;
 }
 
+static void print_usage()
+{
+	printf("Usage: %s [OPTIONS]\n", progname);
+	printf("-h, --help                        - Print this information.\n"
+			"-d, --daemon                      - Run in the background as a daemon.\n");
+}
+
 
 int main(int argc, char **argv)
 {
@@ -194,30 +201,35 @@ int main(int argc, char **argv)
 	int ret;
 	int daemon = 0;
 
-	ret = check_pid_file();
-
-	if (ret == SERVALDHT_RUNNING) {
-		fprintf(stderr, "A Serval instance is already running!\n");
-		return -1;
-	} else if (ret == SERVALDHT_CRASHED) {
-		printf("A previous Serval instance seems to have crashed!\n");
-		unlink(PID_FILE);
-	}
-
-	if (write_pid_file() != 0) {
-		fprintf(stderr, "Could not write PID file!\n");
-		return -1;
-	}
-
 	argc--;
 	argv++;
-
 	while (argc) {
 		if (strcmp(argv[0], "-d") == 0 ||strcmp(argv[0], "--daemon") == 0) {
 			daemon = 1;
+		} else if (strcmp(argv[0], "-h") == 0 ||strcmp(argv[0], "--help") == 0) {
+			print_usage();
+			return -1;
+		} else {
+			print_usage();
+			return -1;
 		}
+
+		//More args are needed, for example for bootstrapping
 		argc--;
 		argv++;
+	}
+
+	ret = check_pid_file();
+	if (ret == SERVALDHT_RUNNING) {
+		fprintf(stderr, "A ServalDHT instance is already running!\n");
+		return -1;
+	} else if (ret == SERVALDHT_CRASHED) {
+		fprintf(stderr, "ServalDHT has been executed since last boot!\n");
+		unlink(PID_FILE);
+	}
+	if (write_pid_file() != 0) {
+		fprintf(stderr, "Could not write PID file!\n");
+		return -1;
 	}
 
 	struct sigaction action;
@@ -228,18 +240,19 @@ int main(int argc, char **argv)
 	sigaction(SIGINT, &action, 0);
 
 	/* Should we run ServalDHT as a deamon?
+	 * Then there is the problem of multiple instances
 	if (daemon) {
 		daemonize();
 	}
-	*/
+	 */
 
 	while(!should_exit)
 	{
 		printf("uid=%u\n", getpid());
-		sleep(1000);
+		sleep(10);
 		//should_exit = 1;
 	}
 
-	printf("ServalDHT exiting...");
+	printf("ServalDHT exiting...\n");
 	return 0;
 }
