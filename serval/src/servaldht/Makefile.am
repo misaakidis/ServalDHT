@@ -2,16 +2,20 @@ SUBDIRS = \
 	dht
 
 bin_PROGRAMS = \
-	servaldht
+	servaldht \
+	resolve_query
 	
 servaldht_SOURCES = \
 	servaldht.c
 
+resolve_query_SOURCES = \
+	resolve_query.c
+
 noinst_HEADERS =
 
-CFLAGS = -g3 -O0
+AM_CFLAGS = -g3 -O0
 
-servaldht_CPPFLAGS =-I$(top_srcdir)/include/sys/
+servaldht_CPPFLAGS =
 servaldht_LDFLAGS =
 	
 clean-local:

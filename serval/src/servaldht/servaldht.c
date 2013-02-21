@@ -17,23 +17,77 @@
 #if defined(ANDROID)
 #define OS_ANDROID 1
 #endif
-#if defined(__KERNEL__)
-#define OS_KERNEL 1
-#define OS_LINUX_KERNEL 1
-#else
-#define OS_USER 1
-#endif
 #endif /* OS_LINUX */
 
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <asm/types.h>
+#include <sys/socket.h>
+#include <linux/netlink.h>
 
+//sha256sum of "ServalDHT" is 1ecc0d5cbe78dd18fcb75be4902ad17b148a7cfbf3a72270771d3231391d75e1
+//alternatively, 53 is the default port of DNS servers and could be used as service id.
+#define ServalDHT_srv_id 53
+#define NETLINK_SERVAL 17
+
+int nltest_recvmsg(int sock)
+{
+	int len;
+	char buf[4096];
+	struct iovec iov = { buf, sizeof(buf) };
+	struct sockaddr_nl sa;
+	struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
+	struct nlmsghdr *nh = (struct nlmsghdr *)buf;
+
+	len = recvmsg(sock, &msg, 0);
+
+	for (; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len)) {
+		switch (nh->nlmsg_type) {
+		case NLMSG_DONE:
+			printf("NLMSG_DONE\n");
+			break;
+		case NLMSG_ERROR:
+		{
+			struct nlmsgerr *nlmerr = (struct nlmsgerr *)NLMSG_DATA(nh);
+			if (nlmerr->error == 0) {
+				printf("NLMSG_ACK\n");
+			} else {
+				printf("NLMSG_ERROR\n");
+			}
+			break;
+		}
+		default:
+			printf("NLMSG type %d\n", nh->nlmsg_type);
+		}
+	}
+
+	return len;
+}
+
+int nltest_sendmsg(int sock, struct nlmsghdr *nh)
+{
+	struct sockaddr_nl sa;
+	struct iovec iov = { (void *) nh, nh->nlmsg_len };
+	struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
+	static int sequence_number = 0;
+
+	memset(&sa, 0, sizeof(sa));
+	sa.nl_family = AF_NETLINK;
+	nh->nlmsg_pid = 0;
+	nh->nlmsg_seq = ++sequence_number;
+	/* Request an ack from kernel by setting NLM_F_ACK. */
+	nh->nlmsg_flags |= NLM_F_ACK;
+
+	printf("Sending message\n");
+	return sendmsg(sock, &msg, 0);
+}
 
 static int should_exit = 0;
 void signal_handler(int sig)
@@ -189,9 +243,10 @@ static int daemonize(void)
 
 static void print_usage()
 {
-	printf("Usage: %s [OPTIONS]\n", progname);
-	printf("-h, --help                        - Print this information.\n"
-			"-d, --daemon                      - Run in the background as a daemon.\n");
+	printf("Usage: %s [ OPTIONS ]\n"
+			"where OPTIONS:\n"
+			"\t-d,--daemon\t\t\t - Run in the background as a daemon.\n"
+			"\t-h,--help\t\t\t - Print this help message.\n", progname);
 }
 
 
@@ -241,16 +296,48 @@ int main(int argc, char **argv)
 
 	/* Should we run ServalDHT as a deamon?
 	 * Then there is the problem of multiple instances
+	 * But it will be useful if servd initiates it
 	if (daemon) {
-		daemonize();
+		ret = daemonize();
+		if (ret < 0) {
+        	fprintf(stderr, "Could not make daemon\n");
+			return ret;
+		}
 	}
 	 */
+
+	int sock;
+	struct sockaddr_nl sa;
+	struct {
+		struct nlmsghdr nh;
+		char payload[8];
+	} msg;
+
+	memset(&sa, 0, sizeof(sa));
+	sa.nl_family = AF_NETLINK;
+	sa.nl_groups = 0;
+
+	sock = socket(PF_NETLINK, SOCK_RAW, NETLINK_SERVAL);
+
+	if (sock == -1) {
+		fprintf(stderr, "Could not open Serval netlink socket\n");
+		return -1;
+	}
+
+	ret = bind(sock, (struct sockaddr*)&sa, sizeof(sa));
+
+	if (ret == -1) {
+		fprintf(stderr, "Could not bind netlink socket\n");
+		return -1;
+	}
 
 	while(!should_exit)
 	{
 		printf("uid=%u\n", getpid());
-		sleep(10);
-		//should_exit = 1;
+		printf("service id=%d\n", ServalDHT_srv_id);
+		printf("Listening...\n");
+		nltest_recvmsg(sock);
+		should_exit = 1;
 	}
 
 	printf("ServalDHT exiting...\n");
