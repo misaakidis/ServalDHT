@@ -67,6 +67,7 @@ int nltest_recvmsg(int sock)
 		}
 		default:
 			printf("NLMSG type %d\n", nh->nlmsg_type);
+			break;
 		}
 	}
 
