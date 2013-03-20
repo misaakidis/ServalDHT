@@ -33,9 +33,19 @@ enum ctrlmsg_type {
         CTRLMSG_TYPE_SERVICE_STAT,
         CTRLMSG_TYPE_CAPABILITIES,
         CTRLMSG_TYPE_MIGRATE,
+        CTRLMSG_TYPE_DELAY_NOTIFY,
+        CTRLMSG_TYPE_DELAY_VERDICT,
         CTRLMSG_TYPE_DUMMY,
         _CTRLMSG_TYPE_MAX,
 };
+
+typedef enum service_rule_type {
+        SERVICE_RULE_UNDEFINED = 0,
+        SERVICE_RULE_FORWARD,
+        SERVICE_RULE_DEMUX,
+        SERVICE_RULE_DELAY,
+        SERVICE_RULE_DROP, 
+} service_rule_type_t;
 
 struct service_info {
         uint16_t type; /* Type of service table entry? DMX, FWD, DLY, etc. */
@@ -239,9 +249,25 @@ struct ctrlmsg_migrate {
 	char to_i[IFNAMSIZ];
 } CTRLMSG_PACKED;
 
-/* CTRLMSG_ASSERT(sizeof(struct ctrlmsg_migrate) == ) */
+CTRLMSG_ASSERT(sizeof(struct ctrlmsg_migrate) == 57) 
 
-#define CTRLMSG_MIGRATE_SIZE (sizeof(struct ctrlmsg_migratee))
+#define CTRLMSG_MIGRATE_SIZE (sizeof(struct ctrlmsg_migrate))
+
+enum delay_verdict {
+        DELAY_RELEASE = 0,
+        DELAY_DROP,
+};
+
+struct ctrlmsg_delay {
+        struct ctrlmsg cmh;
+        uint32_t pkt_id;
+        enum delay_verdict verdict;
+        struct service_id service;
+} CTRLMSG_PACKED;
+
+#define CTRLMSG_DELAY_SIZE (sizeof(struct ctrlmsg_delay))
+
+CTRLMSG_ASSERT(sizeof(struct ctrlmsg_delay) == 48)
 
 enum {
         CTRL_MODE_NET = 0, 
@@ -252,6 +278,7 @@ enum {
 #include <linux/netlink.h>
 #define NETLINK_SERVAL 17
 #define NLMSG_SERVAL NLMSG_MIN_TYPE
+#define SVGRP_CTRL 0x1
 #endif /* __linux__ */
 
 #if defined(OS_ANDROID)

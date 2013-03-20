@@ -270,7 +270,8 @@ int hostctrl_service_unregister(struct hostctrl *hc,
     return hc->ops->service_unregister(hc, srvid, prefix_bits);
 }
 
-int hostctrl_service_add(struct hostctrl *hc, 
+int hostctrl_service_add(struct hostctrl *hc,
+                         enum service_rule_type type,
                          const struct service_id *srvid, 
                          unsigned short prefix_bits,
                          unsigned int priority,
@@ -284,16 +285,17 @@ int hostctrl_service_add(struct hostctrl *hc,
     if (srvid == NULL)
         srvid = &default_service;
 
-    return hc->ops->service_add(hc, srvid, prefix_bits, 
+    return hc->ops->service_add(hc, type, srvid, prefix_bits, 
                                 priority, weight, ipaddr);
 }
 
 int hostctrl_service_remove(struct hostctrl *hc,
+                            enum service_rule_type type,
                             const struct service_id *srvid, 
                             unsigned short prefix_bits,
                             const struct in_addr *ipaddr)
 {
-    return hc->ops->service_remove(hc, srvid, prefix_bits, ipaddr);
+    return hc->ops->service_remove(hc, type, srvid, prefix_bits, ipaddr);
 }
 
 int hostctrl_service_get(struct hostctrl *hc, 
@@ -312,6 +314,7 @@ int hostctrl_service_get(struct hostctrl *hc,
 }
 
 int hostctrl_service_modify(struct hostctrl *hc,
+                            enum service_rule_type type,
                             const struct service_id *srvid, 
                             unsigned short prefix_bits,
                             unsigned int priority,
@@ -319,7 +322,7 @@ int hostctrl_service_modify(struct hostctrl *hc,
                             const struct in_addr *old_ip,
                             const struct in_addr *new_ip)
 {
-    return hc->ops->service_modify(hc, srvid, prefix_bits,
+    return hc->ops->service_modify(hc, type, srvid, prefix_bits,
                                    priority, weight,
                                    old_ip, new_ip);
 }
@@ -365,4 +368,13 @@ int hostctrl_get_peer_addr(struct hostctrl *hc,
                            socklen_t *addrlen)
 {
     return message_channel_get_peer(hc->mc, addr, addrlen);
+}
+
+int hostctrl_set_delay_verdict(struct hostctrl *hc,
+                               unsigned int pkt_id,
+                               enum delay_verdict verdict)
+{
+    if (hc && hc->ops->service_delay_verdict)
+        return hc->ops->service_delay_verdict(hc, pkt_id, verdict);
+    return -1;
 }

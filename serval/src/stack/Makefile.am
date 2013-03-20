@@ -5,6 +5,7 @@ serval_common_SRC = \
 	platform.c \
 	bst.c \
 	service.c \
+	delay_queue.c \
 	ctrl_handler.c \
 	af_serval.c \
 	serval_sock.c \
@@ -16,6 +17,7 @@ serval_common_SRC = \
 	serval_tcp_input.c \
 	serval_tcp_output.c \
 	serval_tcp_cong.c \
+	serval_tcp_metrics.c \
 	serval_tcp_timer.c
 
 serval_SOURCES = \
@@ -48,6 +50,7 @@ SERVAL_HDR = \
 	bst.h \
 	input.h \
 	service.h \
+	delay_queue.h \
 	serval_sock.h \
 	serval_request_sock.h \
 	serval_tcp_request_sock.h \
@@ -118,7 +121,8 @@ SERVAL_KERNEL_SRC = \
 	linux/user_dma.c \
 	linux/iovlock.c \
 	linux/udp_encap.c \
-	linux/sysctl_net_serval.c
+	linux/sysctl_net_serval.c \
+	linux/inet_to_serval.c
 
 SERVAL_KERNEL_DEP = \
 	$(SERVAL_INCLUDE_DIR)/serval/ctrlmsg.h \
@@ -147,6 +151,7 @@ clean-local:
 if ENABLE_LINUX_MODULE
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
 endif
+	rm -f serval.ko
 	rm -f *~
 	rm -f linux/*~
 	rm -f userlevel/*~

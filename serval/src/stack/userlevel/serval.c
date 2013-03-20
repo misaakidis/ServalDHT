@@ -43,7 +43,6 @@ static char *progname = NULL;
 
 extern int telnet_init(void);
 extern void telnet_fini(void);
-extern unsigned int debug;
 unsigned int checksum_mode = 1;
 
 #define MAX(x, y) (x >= y ? x : y)
@@ -411,7 +410,7 @@ out_close_pipe:
 	return ret;
 }
 
-extern void dev_list_add(char *name);
+extern void dev_list_add(const char *name);
 
 #define PID_FILE "/tmp/serval.pid"
 
@@ -538,7 +537,7 @@ int main(int argc, char **argv)
         }
 
 	if (getuid() != 0 && geteuid() != 0) {
-		LOG_CRIT("%s must run as uid=0 (root)\n", progname);
+		fprintf(stderr, "%s must run as uid=0 (root)\n", progname);
                 return -1;
 	}
 
@@ -561,10 +560,7 @@ int main(int argc, char **argv)
         gettimeofday(&now, NULL);
         
         srandom((unsigned int)now.tv_usec);
-        
-        /* Init configuration parameters */
-        memset(&net_serval, 0, sizeof(net_serval));
-        
+                
 	argc--;
 	argv++;
         
@@ -601,7 +597,7 @@ int main(int argc, char **argv)
                                 argv++;
                                 argc--;
                                 LOG_INF("Setting debug to %u\n", d);
-                                debug = d;
+                                net_serval.sysctl_debug = d;
                         } else {
                                 fprintf(stderr, "Invalid debug setting %s\n",
                                         argv[1]);
@@ -636,7 +632,8 @@ int main(int argc, char **argv)
 	
 	if (ret == -1) {
 		LOG_CRIT("Could not initialize ctrl socket.\n");
-		LOG_CRIT("Check if %s already exists.\n", SERVAL_STACK_CTRL_PATH);   
+		LOG_CRIT("Check if %s already exists.\n", 
+                         SERVAL_STACK_CTRL_PATH);   
                 goto cleanup_serval;
 	}
 	
@@ -650,6 +647,7 @@ int main(int argc, char **argv)
 	ret = server_run();
 
         telnet_fini();
+
  cleanup_ctrl:
 	ctrl_fini();
  cleanup_serval:

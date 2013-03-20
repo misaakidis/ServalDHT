@@ -7,6 +7,7 @@
 #include <serval/wait.h>
 #include <serval/net.h>
 #include <serval/bitops.h>
+#include <serval/netdevice.h>
 #include <pthread.h>
 #include <serval_sock.h>
 #include "client.h"
@@ -29,7 +30,7 @@ __u32 sysctl_rmem_default __read_mostly = SK_RMEM_MAX;
 /* Maximal space eaten by iovec or ancilliary data plus some space */
 int sysctl_optmem_max __read_mostly = sizeof(unsigned long)*(2*UIO_MAXIOV+512);
 
-LIST_HEAD(proto_list);
+struct list_head proto_list = { &proto_list, &proto_list };
 DEFINE_RWLOCK(proto_list_lock);
 
 static void sock_def_destruct(struct sock *sk)
@@ -137,6 +138,7 @@ void sock_init_data(struct socket *sock, struct sock *sk)
 	sk->sk_write_pending	=	0;
 	sk->sk_rcvtimeo		=	MAX_SCHEDULE_TIMEOUT;
 	sk->sk_sndtimeo		=	MAX_SCHEDULE_TIMEOUT;
+        sk->sk_bound_dev_if     =       0;
 
         spin_lock_init(&sk->sk_dst_lock);
         rwlock_init(&sk->sk_callback_lock);
@@ -413,6 +415,28 @@ void proto_unregister(struct proto *prot)
 	write_unlock(&proto_list_lock);
 }
 
+/*
+ *	Get a socket option on an socket.
+ *
+ *	FIX: POSIX 1003.1g is very ambiguous here. It states that
+ *	asynchronous errors should be reported by getsockopt. We assume
+ *	this means if you specify SO_ERROR (otherwise whats the point of it).
+ */
+int sock_common_getsockopt(struct socket *sock, int level, int optname,
+			   char __user *optval, int __user *optlen)
+{
+	return 0;
+}
+
+/*
+ *	Set socket options on an inet socket.
+ */
+int sock_common_setsockopt(struct socket *sock, int level, int optname,
+			   char __user *optval, unsigned int optlen)
+{
+	return 0;
+}
+
 /* 
    Wait for data in receive queue, return 1 if data exists, else 0.
  */
@@ -540,6 +564,48 @@ void sk_stop_timer(struct sock *sk, struct timer_list* timer)
 {
         if (timer_pending(timer) && del_timer(timer))
 		__sock_put(sk);
+}
+
+int sk_receive_skb(struct sock *sk, struct sk_buff *skb, const int nested)
+{
+	int rc = NET_RX_SUCCESS;
+
+        /*
+          if (sk_filter(sk, skb))
+		goto discard_and_relse;
+        */
+	skb->dev = NULL;
+
+	if (sk_rcvqueues_full(sk, skb)) {
+		atomic_inc(&sk->sk_drops);
+		goto discard_and_relse;
+	}
+	if (nested)
+		bh_lock_sock_nested(sk);
+	else
+		bh_lock_sock(sk);
+	if (!sock_owned_by_user(sk)) {
+		/*
+		 * trylock + unlock semantics:
+		 */
+		//mutex_acquire(&sk->sk_lock.dep_map, 0, 1, _RET_IP_);
+
+		rc = sk_backlog_rcv(sk, skb);
+
+		//mutex_release(&sk->sk_lock.dep_map, 1, _RET_IP_);
+	} else if (sk_add_backlog(sk, skb)) {
+		bh_unlock_sock(sk);
+		atomic_inc(&sk->sk_drops);
+		goto discard_and_relse;
+	}
+
+	bh_unlock_sock(sk);
+out:
+	sock_put(sk);
+	return rc;
+discard_and_relse:
+	kfree_skb(skb);
+	goto out;
 }
 
 int sock_queue_rcv_skb(struct sock *sk, struct sk_buff *skb)

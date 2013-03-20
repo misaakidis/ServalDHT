@@ -20,17 +20,20 @@ struct hostctrl_ops {
 	int (*service_unregister)(struct hostctrl *hc,
                               const struct service_id *srvid, 
                               unsigned short prefix_bits);
-    int (*service_add)(struct hostctrl *hc, 
+    int (*service_add)(struct hostctrl *hc,
+                       enum service_rule_type type,
                        const struct service_id *srvid, 
                        unsigned short prefix_bits,
                        unsigned int priority,
                        unsigned int weight,
                        const struct in_addr *ipaddr);
     int (*service_remove)(struct hostctrl *hc, 
+                          enum service_rule_type type,
                           const struct service_id *srvid, 
                           unsigned short prefix_bits,
                           const struct in_addr *ipaddr);
     int (*service_modify)(struct hostctrl *hc,
+                          enum service_rule_type type,
                           const struct service_id *srvid, 
                           unsigned short prefix_bits,
                           unsigned int priority,
@@ -50,6 +53,9 @@ struct hostctrl_ops {
     int (*services_query)(struct hostctrl *hc,
                           const struct service_info *si,
                           unsigned int num_si);
+    int (*service_delay_verdict)(struct hostctrl *hc,
+                                 unsigned int pkt_id,
+                                 enum delay_verdict verdict);
     int (*ctrlmsg_recv)(struct hostctrl *hc, struct ctrlmsg *cm,
                         struct sockaddr *from, socklen_t from_len);
 };

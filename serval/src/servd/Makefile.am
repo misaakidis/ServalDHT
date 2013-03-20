@@ -20,8 +20,7 @@ servd_headers = \
 
 servd_CPPFLAGS = \
 	-I$(top_srcdir)/include \
-	-I$(top_srcdir)/src/libservalctrl \
-	-g -O0
+	-I$(top_srcdir)/src/libservalctrl
 
 servd_LDFLAGS = \
 	-L$(top_srcdir)/src/common \

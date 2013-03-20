@@ -70,6 +70,8 @@ typedef unsigned char gfp_t;
 #define EXPORT_SYMBOL(x)
 #define EXPORT_SYMBOL_GPL(x)
 
+#define smp_wmb()
+
 #define prefetch(x) x
 #define __read_mostly
 /*
@@ -119,9 +121,10 @@ static inline void yield(void) {}
 #define __exit
 
 #define panic(name) { int *foo = NULL; *foo = 1; } /* Cause a sefault */
-#define WARN_ON(cond) ({                        \
-                        int ret = !!(cond);     \
-                        ret;                    \
+#define WARN_ON(cond) ({                                                \
+                        int ret = !!(cond);                             \
+                        if (ret) fprintf(stderr, "WARN_ON: %s: %u\n", __FILE__, __LINE__); \
+                        ret;                                            \
                 })
 
 /*

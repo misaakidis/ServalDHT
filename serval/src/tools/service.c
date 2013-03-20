@@ -15,6 +15,7 @@
 #include <sys/types.h>   
 #include <sys/socket.h>
 #include <netdb.h>
+#include <ctype.h>
 #include "command.h"
 
 int name_to_inet_addr(const char *name, struct in_addr *ip)
@@ -74,6 +75,7 @@ static void service_print_usage(void)
         
 struct arguments {
         enum service_op op;
+        enum service_rule_type type;
         struct service_id srvid;
 	struct in_addr ipaddr1, ipaddr2, *ip1, *ip2;
         unsigned int priority;
@@ -89,6 +91,7 @@ static int service_parse_args(int argc, char **argv, void **result)
 
         memset(&args, 0, sizeof(args));
         args.op = __SERVICE_OP_MAX;
+        args.type = SERVICE_RULE_FORWARD;
         args.prefix_bits = SERVICE_ID_MAX_PREFIX_BITS;
         args.priority = 1;
         args.weight = 0;
@@ -169,16 +172,27 @@ static int service_parse_args(int argc, char **argv, void **result)
                 fprintf(stderr, "No target IP in rule\n");
                 return -1;
         }
-        
-        ret = name_to_inet_addr(argv[0], &args.ipaddr1);
-        
-        if (ret != 1) {
-                fprintf(stderr, "Bad IP address: '%s'\n",
-                        argv[0]);
-                return -1;
-        }
 
-        args.ip1 = &args.ipaddr1;
+        /* Make IP/RULE argument lowercase */
+        for (i = 0; argv[0][i]; i++)
+                argv[0][i] = tolower(argv[0][i]);
+
+        if (strcmp(argv[0], "delay") == 0) {
+                args.type = SERVICE_RULE_DELAY;
+        } else if (strcmp(argv[0], "drop") == 0) {
+                args.type = SERVICE_RULE_DROP;
+        } else {
+                ret = name_to_inet_addr(argv[0], &args.ipaddr1);
+                
+                if (ret != 1) {
+                        fprintf(stderr, "Bad IP address: '%s'\n",
+                                argv[0]);
+                        return -1;
+                }
+                
+                args.ip1 = &args.ipaddr1;
+                args.type = SERVICE_RULE_FORWARD;
+        }
 
         argc--;
         argv++;
@@ -256,17 +270,21 @@ static int service_execute(struct hostctrl *hctl, void *in_args)
 
         switch (args->op) {
         case SERVICE_OP_ADD:
-                ret = hostctrl_service_add(hctl, &args->srvid, 
+                ret = hostctrl_service_add(hctl, 
+                                           args->type,
+                                           &args->srvid, 
                                            args->prefix_bits, 
                                            args->priority, 
                                            args->weight, args->ip1);
                 break;
         case SERVICE_OP_DEL:
-                ret = hostctrl_service_remove(hctl, &args->srvid, 
+                ret = hostctrl_service_remove(hctl, args->type, &args->srvid, 
                                               args->prefix_bits, args->ip1);
                 break;
         case SERVICE_OP_MOD:
-                ret = hostctrl_service_modify(hctl, &args->srvid, 
+                ret = hostctrl_service_modify(hctl, 
+                                              args->type,
+                                              &args->srvid, 
                                               args->prefix_bits, 
                                               args->priority, 
                                               args->weight, 
