@@ -14,18 +14,24 @@
 \input{./title.tex}
 \input{./copyright.tex}
 
-\pagestyle{plain}
-\setcounter{page}{1}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
+\thispagestyle{empty}
 {\Large \bf \noindent Acknowledgments}
 \\Here go the acknowledgments
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
+\thispagestyle{empty}
+{\Large \bf \noindent Abstract}
+\\Here goes the final thesis abstract
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\thispagestyle{empty}
 \tableofcontents
 %\listoffigures
 %\listoftables
@@ -33,16 +39,13 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
+%This is the first page with a number
+\pagestyle{plain}
+\setcounter{page}{1}
+
 \renewcommand{\nomname}{Abbreviations}
 \addcontentsline{toc}{section}{Abbreviations}
 \printnomenclature
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-{\Large \bf \noindent Abstract}
-\addcontentsline{toc}{section}{Abstract}
-\\Here goes the final thesis abstract
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
