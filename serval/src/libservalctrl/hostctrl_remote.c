@@ -138,6 +138,7 @@ int remote_ctrlmsg_recv(struct hostctrl *hc, struct ctrlmsg *cm,
         break;
     }
     case CTRLMSG_TYPE_RESOLVE:
+    	//ServalDHT We start here
         break;
     case CTRLMSG_TYPE_SERVICE_STAT:
         break;

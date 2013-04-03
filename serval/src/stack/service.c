@@ -1111,6 +1111,7 @@ static struct service_entry *__service_table_find(struct service_table *tbl,
         return se;
 }
 
+//ServalDHT Useful, find entry in service table according to rule_match_t
 static struct service_entry *service_table_find(struct service_table *tbl,
                                                 struct service_id *srvid, 
                                                 int prefix, 

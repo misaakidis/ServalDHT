@@ -147,6 +147,7 @@ static ctl_table serval_table[] = {
                 .extra2 = &cent,
 	},
         {
+        //ServalDHT service resolution mode in sysctl
 		.procname = "service_resolution_mode",
 		.data = &net_serval.sysctl_resolution_mode,
 		.maxlen = sizeof(unsigned int),

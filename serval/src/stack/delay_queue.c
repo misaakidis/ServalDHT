@@ -222,6 +222,7 @@ int delay_queue_set_verdict(unsigned int pkt_id,
                 } else {
                         /* Just reinject this packet as if received
                            from the network */
+                		//ServalDHT reresolve delayed pkt
                         serval_sal_reresolve(entry->skb);
                         ret = 1;
                 }

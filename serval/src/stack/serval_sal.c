@@ -3049,6 +3049,7 @@ static int serval_sal_update_encap_csum(struct sk_buff *skb)
 }
 #endif /* OS_LINUX_KERNEL */
 
+//ServalDHT Useful
 static int serval_sal_resolve_service(struct sk_buff *skb, 
                                       struct sal_context *ctx,
                                       struct service_id *srvid,
@@ -3129,6 +3130,7 @@ static int serval_sal_resolve_service(struct sk_buff *skb,
                 /* We only get here if we resolved on a FORWARD RULE */
                 err = SAL_RESOLVE_FORWARD;
 
+                //ServalDHT Useful
                 if (skb->pkt_type != PACKET_HOST &&
                     skb->pkt_type != PACKET_OTHERHOST) {
                         /* Do not forward, e.g., broadcast
@@ -3287,6 +3289,7 @@ static struct sock *serval_sal_demux_flow(struct sk_buff *skb,
         return sk;
 }
 
+//ServalDHT Useful
 static int serval_sal_resolve(struct sk_buff *skb, 
                               struct sal_context *ctx,
                               struct sock **sk)
@@ -3302,6 +3305,7 @@ static int serval_sal_resolve(struct sk_buff *skb,
 
         srvid = &ctx->srv_ext[0]->srvid;
 
+        //ServalDHT sal_forward has to be enabled in /proc/sys/net/serval
         if (net_serval.sysctl_sal_forward) {
                 ret = serval_sal_resolve_service(skb, ctx, srvid, sk);
         } else {
@@ -3339,6 +3343,7 @@ static int serval_sal_rcv_finish(struct sock *sk,
 	return err;
 }
 
+//ServalDHT Useful
 int serval_sal_reresolve(struct sk_buff *skb)
 {
         struct sal_context ctx;
@@ -3454,6 +3459,7 @@ int serval_sal_rcv(struct sk_buff *skb)
                         break;
                 case SAL_RESOLVE_FORWARD:
                         /* Packet forwarded on out device */
+                		//ServalDHT Packets that should be forwarded are done so in serval_sal_resolve at line 3454
                         LOG_PKT("SAL FORWARD\n");
                         return NET_RX_SUCCESS;
                 case SAL_RESOLVE_DELAY:
