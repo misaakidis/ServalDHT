@@ -715,7 +715,6 @@ void service_entry_destroy(struct bst_node *n)
         service_entry_put(get_service(n));
 }
 
-//ServalDHT Initialize the service iterator
 int service_iter_init(struct service_iter *iter, 
                       struct service_entry *se,
                       iter_mode_t mode) 
@@ -797,7 +796,6 @@ void service_iter_destroy(struct service_iter *iter)
         read_unlock_bh(&iter->entry->lock);
 }
 
-//ServalDHT Iterate service entries and return those which agree with the Resolution Mode
 struct target *service_iter_next(struct service_iter *iter)
 {
         struct target *t;

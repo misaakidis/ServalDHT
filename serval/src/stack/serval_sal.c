@@ -4007,7 +4007,6 @@ int serval_sal_transmit_skb(struct sock *sk, struct sk_buff *skb,
                 return serval_sal_do_xmit(skb);
         }
 
-        //ServalDHT Here we resolve the service to transmit the pkt
         LOG_SSK(sk, "Resolving service %s\n",
                 service_id_to_str(&ssk->peer_srvid));
 
@@ -4041,7 +4040,6 @@ int serval_sal_transmit_skb(struct sock *sk, struct sk_buff *skb,
                 return -EHOSTUNREACH;
         }
 
-    //ServalDHT transmit the pkt to every possible target
 	while (target) {
 		struct target *next_target;
                 struct net_device *dev = NULL;

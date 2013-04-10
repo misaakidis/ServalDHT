@@ -112,6 +112,7 @@ fi
 if [[ ! -z $RES_MODE ]]; then
   echo "Setting Service_Resolution_Mode to" $RES_MODE
   echo $RES_MODE > /proc/sys/net/serval/service_resolution_mode
+  echo
 fi
 
 
@@ -119,9 +120,9 @@ fi
 if [[ ! -z $DBG_LVL ]]; then
   echo "Setting Debug Level to" $DBG_LVL
   echo $DBG_LVL > /proc/sys/net/serval/debug
+  echo
 fi
 
-echo
 
 # Start the service controller
 echo "Starting the service controller"
