@@ -222,6 +222,28 @@ static int local_service_migrate(struct hostctrl *hc,
     return message_channel_send(hc->mc, &cm, cm.cmh.len);
 }
 
+static int local_flow_stats_query(struct hostctrl *hc,
+                                  struct flow_id *flowids, int flows)
+{
+        int size = sizeof(struct ctrlmsg) + flows * sizeof(struct flow_id);
+        struct ctrlmsg_stats_query *cm = malloc(size);
+        int i = 0;
+
+        if (!cm) {
+                LOG_ERR("Could not allocate message\n");
+                return -1;
+        }
+
+        memset(cm, 0, size);
+        cm->cmh.type = CTRLMSG_TYPE_STATS_QUERY;
+        cm->cmh.len = size;
+        for (i = 0; i < flows; i++) {
+                memcpy(&cm->flows[i], &flowids[i], sizeof(struct flow_id));
+        }
+
+        return message_channel_send(hc->mc, cm, cm->cmh.len);
+}
+
 static int local_service_delay_verdict(struct hostctrl *hc,
                                        unsigned int pkt_id,
                                        enum delay_verdict verdict)
@@ -345,6 +367,12 @@ int local_ctrlmsg_recv(struct hostctrl *hc, struct ctrlmsg *cm,
                                                  CTRLMSG_SERVICE_INFO_STAT_NUM(csis));
         break;
     }
+    case CTRLMSG_TYPE_STATS_RESP: {
+        struct ctrlmsg_stats_response *csr = (struct ctrlmsg_stats_response*)cm;
+        if (hc->cbs->flow_stat_update)
+            ret = hc->cbs->flow_stat_update(hc, cm->xid, cm->retval, csr);
+        break;
+    }
     case CTRLMSG_TYPE_DELAY_NOTIFY: {
         struct ctrlmsg_delay *cmd = 
             (struct ctrlmsg_delay *)cm;
@@ -367,6 +395,7 @@ struct hostctrl_ops local_ops = {
     .interface_migrate = local_interface_migrate,
     .flow_migrate = local_flow_migrate,
     .service_migrate = local_service_migrate,
+    .flow_stats_query = local_flow_stats_query,
     .service_register = local_service_register_dummy,
     .service_unregister = local_service_unregister_dummy,
 	.service_add = local_service_add,

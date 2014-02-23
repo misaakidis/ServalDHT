@@ -47,8 +47,10 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
 
 #include <serval/checksum.h>
 
+#if !defined(OS_ANDROID)
 #define PAGE_SHIFT      12
 #define PAGE_SIZE       (1 << PAGE_SHIFT) /* 4096 bytes */
+#endif
 
 int ilog2(unsigned long n);
 
@@ -365,10 +367,6 @@ int ppoll(struct pollfd fds[], nfds_t nfds, struct timespec *timeout, sigset_t *
 const char *mac_ntop(const void *src, char *dst, size_t size);
 const char *get_strtime(void);
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,37))
-#define route_dst(rt) (&(rt)->u.dst)
-#else
-#define route_dst(rt) (&(rt)->dst)
-#endif /* LINUX_VERSION_CODE */
+#include <serval/compat.h>
 
 #endif /* _PLATFORM_H */

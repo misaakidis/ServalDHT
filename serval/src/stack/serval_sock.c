@@ -19,6 +19,8 @@
 #include <serval/netdevice.h>
 #include <netinet/serval.h>
 #include <serval_sock.h>
+#include <serval_tcp_sock.h>
+#include <serval_request_sock.h>
 #include <serval_sal.h>
 #include <service.h>
 #if defined(OS_LINUX_KERNEL)
@@ -41,6 +43,8 @@ static DEFINE_RWLOCK(sock_list_lock);
 
 /* The number of (prefix) bytes to hash on in the serviceID */
 #define SERVICE_KEY_LEN (8)
+
+#define DEFAULT_MAX_REQUEST_QLEN 500
 
 static const char *sock_state_str[] = {
         [ SAL_INIT ]      = "INIT",
@@ -66,14 +70,14 @@ static const char *sock_sal_state_str[] = {
 
 static void serval_sock_destruct(struct sock *sk);
 
-int __init serval_table_init(struct serval_table *table,
-                             unsigned int (*hashfn)(struct serval_table *tbl, 
-                                                    struct sock *sk),
-                             struct serval_hslot *(*hashslot)(struct serval_table *tbl,
-                                                              struct net *net,
-                                                              void *key,
-                                                              size_t keylen),
-                             const char *name)
+int serval_table_init(struct serval_table *table,
+                      unsigned int (*hashfn)(struct serval_table *tbl, 
+                                             struct sock *sk),
+                      struct serval_hslot *(*hashslot)(struct serval_table *tbl,
+                                                       struct net *net,
+                                                       void *key,
+                                                       size_t keylen),
+                      const char *name)
 {
 	unsigned int i;
 
@@ -98,7 +102,7 @@ int __init serval_table_init(struct serval_table *table,
 	return 0;
 }
 
-void __exit serval_table_fini(struct serval_table *table)
+void serval_table_fini(struct serval_table *table)
 {
         unsigned int i;
 
@@ -135,7 +139,7 @@ void serval_sock_migrate_iface(int old_dev, int new_dev)
                 local_bh_disable();
                 spin_lock(&slot->lock);
                                 
-                hlist_for_each_entry(sk, walk, &slot->head, sk_node) {
+                hlist_for_each_entry_compat(sk, walk, &slot->head, sk_node) {
                         int should_migrate = 0;
 
                         if (old_dev > 0 && new_dev > 0) {
@@ -232,7 +236,7 @@ void serval_sock_freeze_flows(struct net_device *dev)
                 
                 spin_lock_bh(&slot->lock);
                                 
-                hlist_for_each_entry(sk, walk, &slot->head, sk_node) {          
+                hlist_for_each_entry_compat(sk, walk, &slot->head, sk_node) {          
                         struct serval_sock *ssk = serval_sk(sk);                       
                         
                         if (sk->sk_bound_dev_if > 0 && 
@@ -279,6 +283,94 @@ void serval_sock_migrate_service(struct service_id *old_s, int new_dev)
         }
 }
 
+struct flow_info *serval_sock_stats_flow(struct flow_id *flow, 
+                                         struct ctrlmsg_stats_response *resp,
+                                         int idx)
+{
+        struct sock *sk = serval_sock_lookup_flow(flow);
+        struct flow_info *ret = NULL;
+
+        if (sk) {
+                int info_size = sizeof(struct flow_id) + sizeof(uint8_t) + 
+                                sizeof(unsigned long) + sizeof(uint16_t);
+                struct socket *socket = sk->sk_socket;
+                if (sk->sk_protocol == IPPROTO_TCP) {
+                        struct serval_tcp_sock *tsk = 
+                                (struct serval_tcp_sock *) sk;
+                        struct stats_proto_tcp *st = NULL;
+                        info_size += sizeof(struct stats_proto_tcp);
+                        ret = kmalloc(info_size, GFP_KERNEL);
+                        memset(ret, 0, info_size);
+                        ret->len = info_size;
+
+                        st = (struct stats_proto_tcp *)&ret->stats;
+                        st->retrans = tsk->total_retrans;
+                        st->lost = tsk->lost_out;
+                        st->srtt = tsk->srtt;
+                        st->rttvar = tsk->mdev;
+                        st->mss = tsk->mss_cache;
+                        st->snd_ssthresh = tsk->snd_ssthresh;
+                        st->snd_cwnd = tsk->snd_cwnd;
+                        st->snd_wnd = tsk->snd_wnd;
+                        st->snd_una = tsk->snd_una;
+                        st->snd_nxt = tsk->snd_nxt;
+                        st->rcv_wnd = tsk->rcv_wnd;
+                        st->rcv_nxt = tsk->rcv_nxt;      
+                } else {
+                        info_size += sizeof(struct stats_proto_base);
+                        ret = kmalloc(info_size, GFP_KERNEL);
+                        memset(ret, 0, info_size);
+                        ret->len = info_size;
+                }
+                ret->proto = sk->sk_protocol;
+                ret->inode = get_socket_inode(socket);
+                memcpy(&ret->flow, flow, sizeof(struct flow_id));
+                ret->pkts_sent = serval_sk(sk)->tot_pkts_sent;
+                ret->pkts_recv = serval_sk(sk)->tot_pkts_recv;
+                ret->bytes_sent = serval_sk(sk)->tot_bytes_sent;
+                ret->bytes_recv = serval_sk(sk)->tot_bytes_recv;
+                sock_put(sk);
+                LOG_DBG("Flow %s, proto %d\n", flow_id_to_str(flow), ret->proto);
+        }
+        return ret;
+}
+
+void serval_sock_request_queue_prune(struct sock *parent,
+                                     const unsigned long interval,
+                                     const unsigned long timeout,
+                                     const unsigned long max_rto)
+{
+        struct serval_sock *pssk = serval_sk(parent);
+        struct serval_request_sock *srsk, *tmp;
+        unsigned long now = jiffies;
+
+        if (pssk->request_qlen == 0) {
+                LOG_DBG("Request queue len=0, no pruning needed\n");
+                return;
+        }
+
+        LOG_DBG("Pruning request queue (len=%lu)\n", pssk->request_qlen);
+
+        list_for_each_entry_safe(srsk, tmp, &pssk->syn_queue, lh) {
+                if (time_after_eq(now, srsk->rsk.req.expires)) {
+                        struct request_sock *req = &srsk->rsk.req;
+                        list_del(&srsk->lh);
+                        serval_sock_request_queue_removed(parent);
+                        reqsk_free(req);
+                }
+        }
+
+        if (pssk->request_qlen)
+                serval_sock_reset_keepalive_timer(parent, interval);
+}
+
+void serval_sock_reqsk_queue_add(struct sock *sk, struct request_sock *rsk,
+                                 unsigned long timeout)
+{
+        serval_reqsk_queue(rsk, &serval_sk(sk)->syn_queue, timeout);
+        serval_sock_request_queue_added(sk, timeout);
+}
+
 static struct sock *serval_sock_lookup(struct serval_table *table,
                                        struct net *net, void *key, 
                                        size_t keylen)
@@ -297,7 +389,7 @@ static struct sock *serval_sock_lookup(struct serval_table *table,
 
         spin_lock_bh(&slot->lock);
         
-        hlist_for_each_entry(sk, walk, &slot->head, sk_node) {
+        hlist_for_each_entry_compat(sk, walk, &slot->head, sk_node) {
                 struct serval_sock *ssk = serval_sk(sk);
                 if (memcmp(key, ssk->hash_key, keylen) == 0) {
                         sock_hold(sk);
@@ -402,7 +494,8 @@ void serval_sock_hash(struct sock *sk)
                                   SERVICE_RULE_DEMUX, ssk->srvid_flags, 
                                   LOCAL_SERVICE_DEFAULT_PRIORITY, 
                                   LOCAL_SERVICE_DEFAULT_WEIGHT,
-                                  NULL, 0, make_target(sk), GFP_ATOMIC);
+                                  NULL, 0, make_sock_target(sk), 
+                                  GFP_ATOMIC);
                 if (err < 0) {
 #if defined(OS_LINUX_KERNEL)
                         LOG_ERR("could not add service for listening demux\n");
@@ -476,7 +569,7 @@ void serval_sock_unhash(struct sock *sk)
         }
 }
 
-int __init serval_sock_tables_init(void)
+int serval_sock_tables_init(void)
 {
         int ret;
 
@@ -497,7 +590,7 @@ fail_table:
         return ret;
 }
 
-void __exit serval_sock_tables_fini(void)
+void serval_sock_tables_fini(void)
 {
         serval_table_fini(&request_table);
         serval_table_fini(&established_table);
@@ -568,6 +661,8 @@ void serval_sock_init(struct sock *sk)
         ssk->sal_state = SAL_RSYN_INITIAL;
         ssk->udp_encap_sport = 0;
         ssk->udp_encap_dport = 0;
+        ssk->request_qlen = 0;
+        ssk->max_request_qlen = DEFAULT_MAX_REQUEST_QLEN;
         INIT_LIST_HEAD(&ssk->sock_node);
         INIT_LIST_HEAD(&ssk->accept_queue);
         INIT_LIST_HEAD(&ssk->syn_queue);
@@ -764,16 +859,10 @@ const char *serval_sock_print_state(struct sock *sk, char *buf, size_t buflen)
 const char *serval_sock_print(struct sock *sk, char *buf, size_t buflen)
 {
         struct serval_sock *ssk = serval_sk(sk);
-        struct net_device *dev = dev_get_by_index(sock_net(sk), 
-                                                  sk->sk_bound_dev_if);
 
-        snprintf(buf, buflen, "[%s:%s %s]",
+        snprintf(buf, buflen, "[%s:%s]",
                  flow_id_to_str(&ssk->local_flowid),
-                 flow_id_to_str(&ssk->peer_flowid),
-                 dev ? dev->name : "nodev");
-
-        if (dev)
-                dev_put(dev);
+                 flow_id_to_str(&ssk->peer_flowid));
 
         return buf;
 }
@@ -940,20 +1029,82 @@ void flow_table_read_unlock(void)
         read_unlock_bh(&sock_list_lock);
 }
 
+void sock_list_iterator_init(struct sock_list_iterator *iter)
+{
+        read_lock_bh(&sock_list_lock);
+        iter->head = &sock_list;
+        iter->curr = iter->head;
+        iter->sk = NULL;
+}
+
+void sock_list_iterator_destroy(struct sock_list_iterator *iter)
+{
+        read_unlock_bh(&sock_list_lock);
+}
+
+struct sock *sock_list_iterator_next(struct sock_list_iterator *iter)
+{
+        iter->curr = iter->curr->next;
+        
+        if (iter->curr == iter->head)
+                iter->sk = NULL;
+        else
+                iter->sk = (struct sock *)list_entry(iter->curr, 
+                                                     struct serval_sock, 
+                                                     sock_node);
+        return iter->sk;
+}
+
+int serval_sock_flow_print_header(char *buf, size_t buflen)
+{
+        return snprintf(buf, buflen, 
+                        "%-10s %-10s %-15s %-15s %-6s %-8s %-8s %-10s %s\n",
+                        "srcFlowID", "dstFlowID", 
+                        "srcIP", "dstIP", "proto", "reqQ", "backlog", "state", "dev");
+}
+
+int serval_sock_flow_print(struct sock *sk, char *buf, size_t buflen)
+{
+        struct serval_sock *ssk = serval_sk(sk);
+        char src[18], dst[18];
+        int len;
+        struct net_device *dev = dev_get_by_index(sock_net(sk), 
+                                                  sk->sk_bound_dev_if);
+        
+        len = snprintf(buf, buflen, 
+                       "%-10s %-10s %-15s %-15s %-6s %-8lu %-8u %-10s %s\n",
+                       flow_id_to_str(&ssk->local_flowid), 
+                       flow_id_to_str(&ssk->peer_flowid),
+                       inet_ntop(AF_INET, &inet_sk(sk)->inet_saddr,
+                                 src, 18),
+                       inet_ntop(AF_INET, &inet_sk(sk)->inet_daddr,
+                                 dst, 18),
+                       sk->sk_prot->name,
+                       serval_sk(sk)->request_qlen,
+                       sk->sk_ack_backlog,
+                       serval_sock_state_str(sk),
+                       dev ? dev->name : "unbound");
+        
+        if (dev)
+                dev_put(dev);
+        
+        return len;
+}
+
 /*
   If this function is called with buflen < 0, the buffer size required
   for fitting the entire table will be returned. In that case, any
   output in buf should be ignored.
  */
-int __flow_table_print(char *buf, size_t buflen) 
+int flow_table_print(char *buf, size_t buflen) 
 {
         int tot_len, len;
-        struct serval_sock *ssk;
+        struct sock_list_iterator iter;
 
-        len = snprintf(buf, buflen, 
-                       "%-10s %-10s %-17s %-17s %-10s %s\n",
-                       "srcFlowID", "dstFlowID", 
-                       "srcIP", "dstIP", "state", "dev");
+        sock_list_iterator_init(&iter);
+
+        len = serval_sock_flow_print_header(buf, buflen);
+
         tot_len = len;
 
         if (len > buflen)
@@ -961,26 +1112,15 @@ int __flow_table_print(char *buf, size_t buflen)
         else
                 buflen -= len;
 
-        list_for_each_entry(ssk, &sock_list, sock_node) {
-                char src[18], dst[18];
-                struct sock *sk = (struct sock *)ssk;
-                struct net_device *dev = dev_get_by_index(sock_net(sk), 
-                                                          sk->sk_bound_dev_if);
+        while (1) {
+                struct sock *sk = sock_list_iterator_next(&iter);
 
-                len = snprintf(buf + tot_len, buflen, 
-                               "%-10s %-10s %-17s %-17s %-10s %s\n",
-                               flow_id_to_str(&ssk->local_flowid), 
-                               flow_id_to_str(&ssk->peer_flowid),
-                               inet_ntop(AF_INET, &inet_sk(sk)->inet_saddr,
-                                         src, 18),
-                               inet_ntop(AF_INET, &inet_sk(sk)->inet_daddr,
-                                         dst, 18),
-                               serval_sock_state_str(sk),
-                               dev ? dev->name : "unbound");
-
-                if (dev)
-                        dev_put(dev);
-
+                if (!sk)
+                        break;
+                
+                len = serval_sock_flow_print(sk, buf + tot_len, 
+                                             buflen - tot_len);
+                
                 tot_len += len;
 
                 if (len > buflen)
@@ -989,17 +1129,8 @@ int __flow_table_print(char *buf, size_t buflen)
                         buflen -= len;
         }
 
+        sock_list_iterator_destroy(&iter);
+      
         return tot_len;
 }
-
-int flow_table_print(char *buf, size_t buflen) 
-{
-        int ret;
-        
-        read_lock_bh(&sock_list_lock);
-        ret = __flow_table_print(buf, buflen);
-        read_unlock_bh(&sock_list_lock);
-        return ret;
-}
-
 

@@ -59,6 +59,15 @@ JNIEXPORT jint JNICALL Java_org_servalarch_servalctrl_HostCtrl_migrateInterface
 
 /*
  * Class:     org_servalarch_servalctrl_HostCtrl
+ * Method:    statsFlow
+ * Signature: ([JI)I
+ */
+JNIEXPORT jint JNICALL Java_org_servalarch_servalctrl_HostCtrl_statsFlow
+  (JNIEnv *, jobject, jlongArray, jint);
+
+
+/*
+ * Class:     org_servalarch_servalctrl_HostCtrl
  * Method:    addService4
  * Signature: (ILorg/servalarch/net/ServiceID;IIILjava/net/Inet4Address;)I
  */

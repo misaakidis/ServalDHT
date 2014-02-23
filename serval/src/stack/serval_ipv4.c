@@ -109,13 +109,30 @@ int serval_ipv4_forward_out(struct sk_buff *skb)
         /* Redo input routing with new destination address. IP
            forwarding must be enabled for this to work. */
         err = ip_route_input_noref(skb, 
-                                   iph->daddr, 
+                                   iph->daddr,
                                    iph->saddr, 
-                                   iph->tos, 
+                                   iph->tos,
                                    skb->dev);
         
         if (err < 0) {
-                LOG_ERR("Could not forward SAL packet, NO route [err=%d]\n", err);
+                switch (-err) {
+                case EINVAL:
+                        LOG_ERR("SAL INPUT forwarding: Invalid argument\n");
+                        break;
+                case EHOSTUNREACH:
+                        LOG_ERR("SAL INPUT forwarding: Host unreachable\n");
+                        break;
+                case ENETUNREACH:
+                        LOG_ERR("SAL INPUT forwarding: Network unreachable\n");
+                        break;
+                case ENOBUFS:
+                        LOG_ERR("SAL INPUT forwarding: NOBUFS\n");
+                        break;
+                default:
+                        LOG_ERR("Could not forward SAL packet, NO INPUT route [err=%d]\n", err);
+                        break;
+                }
+
                 kfree_skb(skb);
                 return NET_RX_DROP;
         }
@@ -474,8 +491,8 @@ int serval_ipv4_xmit(struct sk_buff *skb)
 		iph->frag_off = 0;
 	iph->ttl      = ip_select_ttl(inet, route_dst(rt));
 	iph->protocol = skb->protocol;
-	iph->saddr    = inet->inet_saddr; //rt->rt_src;
-	iph->daddr    = inet->inet_daddr; //rt->rt_dst;
+	iph->saddr    = rt->rt_src;
+	iph->daddr    = rt->rt_dst;
 
 	if (opt && opt->optlen) {
                 LOG_WARN("IP options not implemented\n");
@@ -490,8 +507,13 @@ int serval_ipv4_xmit(struct sk_buff *skb)
                 */
 	}
         
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,2,12) || (LINUX_VERSION_CODE == 197173))
+        ip_select_ident_more(skb, route_dst(rt), sk,
+			     (skb_shinfo(skb)->gso_segs ?: 1) - 1);
+#else
         ip_select_ident_more(iph, route_dst(rt), sk,
 			     (skb_shinfo(skb)->gso_segs ?: 1) - 1);
+#endif
 
 	skb->priority = sk->sk_priority;
 

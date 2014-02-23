@@ -4,8 +4,6 @@
 #include <serval_tcp.h>
 #include <serval_tcp_sock.h>
 
-int sysctl_serval_tcp_syn_retries __read_mostly = TCP_SYN_RETRIES;
-int sysctl_serval_tcp_synack_retries __read_mostly = TCP_SYNACK_RETRIES;
 int sysctl_serval_tcp_keepalive_time __read_mostly = TCP_KEEPALIVE_TIME;
 int sysctl_serval_tcp_keepalive_probes __read_mostly = TCP_KEEPALIVE_PROBES;
 int sysctl_serval_tcp_keepalive_intvl __read_mostly = TCP_KEEPALIVE_INTVL;
@@ -472,10 +470,15 @@ out_unlock:
 	sock_put(sk);
 }
 
-static void serval_tcp_keepalive_timer (unsigned long data)
+static void serval_tcp_synack_timer(struct sock *sk)
+{
+        serval_sock_request_queue_prune(sk, SAL_SYNQ_INTERVAL,
+                                        SAL_TIMEOUT_INIT, SAL_RTO_MAX);
+}
+
+static void serval_tcp_keepalive_timer(unsigned long data)
 {
 	struct sock *sk = (struct sock *) data;
-	//struct serval_tcp_sock *tp = serval_tcp_sk(sk);
 
 	/* Only process if socket is not in use. */
 	bh_lock_sock(sk);
@@ -484,6 +487,11 @@ static void serval_tcp_keepalive_timer (unsigned long data)
 		serval_tsk_reset_keepalive_timer (sk, HZ/20);
 		goto out;
 	}
+
+        if (sk->sk_state == SAL_LISTEN) {
+                serval_tcp_synack_timer(sk);
+                goto out;
+        }
 
 	LOG_SSK(sk, "Keepalive timer not implemented!\n");
 

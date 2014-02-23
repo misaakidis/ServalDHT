@@ -4,10 +4,13 @@ bin_PROGRAMS = translator
 
 translator_SOURCES = \
 	translator.c \
-	log.c
+	client.c \
+	worker.c
 
 noinst_HEADERS = \
-	log.h
+	translator.h \
+	client.h \
+	worker.h
 
 translator_CPPFLAGS =-I$(top_srcdir)/include
 translator_LDFLAGS =-lpthread
@@ -22,6 +25,9 @@ EXTRA_DIST = \
 	splice.h \
 	sys_splice.S \
 	translator_jni.c
+
+install-exec-hook: sysvinit
+	install -m 755 $^ /etc/init.d/translator
 
 clean-local:
 	rm -f *~

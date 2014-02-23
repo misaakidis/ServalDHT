@@ -248,6 +248,12 @@ int hostctrl_service_migrate(struct hostctrl *hc, struct service_id *srvid,
     return hc->ops->service_migrate(hc, srvid, to_iface);
 }
 
+int hostctrl_flow_stats_query(struct hostctrl *hc, struct flow_id *flowids,
+                              int flows)
+{
+    return hc->ops->flow_stats_query(hc, flowids, flows);
+}
+
 int hostctrl_service_register(struct hostctrl *hc, 
                               const struct service_id *srvid, 
                               unsigned short prefix_bits,
@@ -331,6 +337,7 @@ int hostctrl_services_add(struct hostctrl *hc,
                           const struct service_info *si,
                           unsigned int num_si)
 {
+    LOG_ERR("Not implemented yet!\n");
     return 0;
 }
 
@@ -338,6 +345,7 @@ int hostctrl_services_remove(struct hostctrl *hc,
                              const struct service_info *si,
                              unsigned int num_si)
 {
+    LOG_ERR("Not implemented yet!\n");
     return 0;
 }
 
@@ -347,12 +355,14 @@ int hostctrl_service_query(struct hostctrl *hc,
                            unsigned short prefix,
                            struct service_info_stat **si)
 {
+    LOG_ERR("Not implemented yet!\n");
     return 0;
 }
 
 int hostctrl_set_capabilities(struct hostctrl *hc,
                               uint32_t capabilities)
 {
+    LOG_ERR("Not implemented yet!\n");
     return 0;
 }
 

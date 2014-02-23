@@ -34,8 +34,11 @@
 #include <common/signal.h>
 #include <common/debug.h>
 #include <common/list.h>
+#include <common/log.h>
 #include <pthread.h>
 #include <poll.h>
+#include <stdbool.h>
+#include "config.h"
 
 #if defined(OS_LINUX)
 #include "rtnl.h"
@@ -50,10 +53,10 @@ static struct service_id default_service;
 
 struct servd_context {
         struct timer_queue tq;
-        int router; /* Whether this service daemon is a stub
-                       end-host or a router */
+        unsigned char router:1; /* Whether this service daemon is a
+                                   stub end-host or a router */
+        unsigned char router_ip_set:1;
         struct in_addr router_ip;
-        int router_ip_set;
         struct sockaddr_sv raddr, caddr;
         struct hostctrl *lhc, *rhc;
         struct list_head reglist;
@@ -75,10 +78,12 @@ struct registration {
         unsigned short prefix;
         struct in_addr ipaddr;
         struct timer timer;
-        int ip_set;
+        unsigned char ip_set:1;
 };
 
-#define LOCAL_SERVICE_TIMEOUT (20)
+/* Timeout for a service entry in seconds */
+static unsigned service_timeout = 20;
+#define LOCAL_SERVICE_TIMEOUT (service_timeout)
 #define REMOTE_SERVICE_TIMEOUT ((LOCAL_SERVICE_TIMEOUT * 2) + 10)
 
 static void registration_timeout_local(struct timer *t)
@@ -91,7 +96,7 @@ static void registration_timeout_local(struct timer *t)
                 char ip1[18];
                 LOG_DBG("Refreshing registration of service %s:%u %s\n",
                         service_id_to_str(&r->srvid), r->prefix,
-                        inet_ntop(AF_INET, &r->ipaddr, ip1, 18));
+                        inet_ntop(AF_INET, &r->ipaddr, ip1, sizeof(ip1)));
         }
 #endif
         ret = hostctrl_service_register(r->ctx->rhc, 
@@ -324,6 +329,13 @@ static void registration_clear(struct servd_context *ctx)
                         list_first_entry(&ctx->reglist, 
                                         struct registration, lh);
                 list_del(&reg->lh);
+
+                if (reg->type == SERVICE_REMOTE) {
+                        hostctrl_service_remove(ctx->lhc, 
+                                                SERVICE_RULE_FORWARD,
+                                                &reg->srvid, reg->prefix, 
+                                                &reg->ipaddr);
+                }
                 free(reg);
         }
 }
@@ -339,7 +351,7 @@ static int name_to_inet_addr(const char *name, struct in_addr *ip)
         ret = getaddrinfo(name, "0", &hints, &ai);
         
         if (ret != 0) {
-                fprintf(stderr, "getaddrinfo error=%d\n", ret);
+                fprintf(stderr, "getaddrinfo error=%s\n", gai_strerror(ret));
                 return -1;
         }
 
@@ -361,7 +373,15 @@ static int name_to_inet_addr(const char *name, struct in_addr *ip)
 
 static void signal_handler(int sig)
 {
-        signal_raise(&exit_signal);
+        switch (sig) {
+        case SIGQUIT:
+        case SIGINT:
+        case SIGTERM:
+                signal_raise(&exit_signal);
+                break;
+        default:
+                break;
+        }
 }
 
 /*
@@ -467,7 +487,9 @@ static int register_service_remotely(struct hostctrl *hc,
                         if (ret == -1) {
                                 fprintf(stderr, "could not get local channel address\n");
                         }
-                        registration_add(ctx, SERVICE_LOCAL, srvid, prefix, &addr.in.sin_addr);
+
+                        registration_add(ctx, SERVICE_LOCAL, srvid, 
+                                         prefix, &addr.in.sin_addr);
 
                         LOG_DBG("Local service %s @ %s registered\n", 
                                 service_id_to_str(srvid),
@@ -743,11 +765,63 @@ static void print_usage(void)
                "where OPTIONS:\n"
                "\t-d,--daemon\t\t\t - Run in the background as a daemon.\n"
                "\t-r,--router\t\t\t - Run in router mode, accepting registrations.\n"
+               "\t-c,--config CONFIG_FILE\t - Path to the configuration file to use.\n"
+               "\t-l,--log LOG_DIR\t - Write log to LOG_DIR directory.\n"
                "\t-rid,--router-id SERVICEID\t - Specify the SERVICEID of a router.\n"
                "\t-cid,--client-id SERVICEID\t - Specify the SERVICEID of a client.\n"
                "\t-rip,--router-ip ROUTER_IP\t - Specify the IP of a service router.\n"
                "\t-h,--help\t\t\t - Print this help message.\n");
 }
+
+static struct servd_context ctx;
+static bool router = false;
+static bool godaemon = false;
+static unsigned int router_id = 88888;
+static unsigned int client_id = 55555;
+static char log_path[256] = { "" };
+
+#define LOG_FILE "/servd.log"
+#define LOG_ERROR_FILE "/servd-error.log"
+
+struct config configuration[] = {
+    {
+	.type = CONFIG_TYPE_BOOL,
+	.name = "router",
+	.value = &router,
+        .size = sizeof(router),
+    },
+    {
+	.type = CONFIG_TYPE_BOOL,
+	.name = "daemon",
+	.value = &godaemon,
+        .size = sizeof(godaemon),
+    },
+    {
+	.type = CONFIG_TYPE_UINT,
+	.name = "router_id",
+	.value = &router_id,
+        .size = sizeof(router_id),
+    },
+    {
+	.type = CONFIG_TYPE_UINT,
+	.name = "client_id",
+	.value = &client_id,
+        .size = sizeof(client_id),
+    },
+    {
+	.type = CONFIG_TYPE_STRING,
+	.name = "log_path",
+	.value = log_path,
+        .size = sizeof(log_path) - sizeof(LOG_ERROR_FILE),
+    },
+    {
+	.type = CONFIG_TYPE_IPADDR,
+	.name = "router_ip",
+	.value = &ctx.router_ip,
+        .size = sizeof(ctx.router_ip),
+    },
+    null_config
+};
 
 
 int main(int argc, char **argv)
@@ -757,10 +831,8 @@ int main(int argc, char **argv)
         struct netlink_handle nlh;
 #endif
         fd_set readfds;
-        int daemon = 0;
 	int ret = EXIT_SUCCESS;
-        unsigned int router_id = 88888, client_id = 55555;
-        struct servd_context ctx;
+        const char *config_file = "/usr/local/etc/servd.conf";
 
         memset(&default_service, 0, sizeof(default_service));
 	memset(&sigact, 0, sizeof(struct sigaction));
@@ -769,10 +841,19 @@ int main(int argc, char **argv)
         pthread_mutex_init(&ctx.lock, NULL);
 
 	sigact.sa_handler = &signal_handler;
+	sigaction(SIGQUIT, &sigact, NULL);
 	sigaction(SIGINT, &sigact, NULL);
 	sigaction(SIGTERM, &sigact, NULL);
 	sigaction(SIGHUP, &sigact, NULL);
 	sigaction(SIGPIPE, &sigact, NULL);
+
+        config_read(config_file, configuration);
+
+        if (ctx.router_ip.s_addr != 0) 
+                ctx.router_ip_set = 1;
+
+        if (router)
+                ctx.router = 1;
 
         argc--;
 	argv++;
@@ -784,11 +865,29 @@ int main(int argc, char **argv)
                         return 0;
                 } else if (strcmp(argv[0], "-d") == 0 ||
                     strcmp(argv[0], "--daemon") == 0) {
-                        daemon = 1;
+                        godaemon = true;
                 } else if (strcmp(argv[0], "-r") == 0 ||
                            strcmp(argv[0], "--router") == 0) {
                         LOG_DBG("Host is service router\n");
                         ctx.router = 1;
+                } else if (strcmp(argv[0], "-c") == 0 ||
+                           strcmp(argv[0], "--config") == 0) {
+                        if (argc < 1) {
+                                fprintf(stderr, "No config file given\n");
+                                return -1;
+                        }
+                        config_file = argv[1];
+                        argc--;
+                        argv++;
+                } else if (strcmp(argv[0], "-l") == 0 ||
+                           strcmp(argv[0], "--log") == 0) {
+                        if (argc < 1) {
+                                fprintf(stderr, "No log file specified\n");
+                                return -1;
+                        }
+                        strncpy(log_path, argv[1], sizeof(log_path));
+                        argc--;
+                        argv++;
                 } else if (strcmp(argv[0], "-rid") == 0 ||
                            strcmp(argv[0], "--router-id") == 0) {
                         char *ptr;
@@ -817,7 +916,6 @@ int main(int argc, char **argv)
                         }
                         if (name_to_inet_addr(argv[1], &ctx.router_ip) == 1 ||
                             inet_pton(AF_INET, argv[1], &ctx.router_ip) == 1) {
-                                LOG_DBG("Service router IP is %s\n", argv[1]);
                                 ctx.router_ip_set = 1;
                         }
                 } else if (strcmp(argv[0], "-cid") == 0 ||
@@ -844,14 +942,38 @@ int main(int argc, char **argv)
 		argc--;
 		argv++;
 	}	
-      
-        if (daemon) {
+
+        if (strlen(log_path) > 0) {
+                size_t len = strlen(log_path);
+
+                strncpy(log_path + len, LOG_FILE, sizeof(log_path) - len);
+                log_open(DEFAULT_LOG, log_path, LOG_APPEND);
+                log_set_flag(DEFAULT_LOG, LOG_F_TIMESTAMP | LOG_F_SYNC);
+
+                strncpy(log_path + len, LOG_ERROR_FILE, sizeof(log_path) - len);
+                log_open(DEFAULT_ERR_LOG, log_path, LOG_APPEND);
+                log_set_flag(DEFAULT_ERR_LOG, LOG_F_TIMESTAMP | LOG_F_SYNC);
+        }
+
+        if (ctx.router) {
+                LOG_DBG("Acting as service router\n");
+        }
+
+        if (ctx.router_ip_set) {
+#if defined(ENABLE_DEBUG)
+                char addr[18];
+                LOG_DBG("Service router IP is %s\n", 
+                        inet_ntop(AF_INET, &ctx.router_ip, addr, sizeof(addr)));
+#endif
+        }
+
+        if (godaemon) {
                 LOG_DBG("going daemon...\n");
                 ret = daemonize();
                 
                 if (ret < 0) {
                         LOG_ERR("Could not make daemon\n");
-                        return ret;
+                        goto fail_daemon;
                 } 
         }
 
@@ -859,7 +981,7 @@ int main(int argc, char **argv)
 
         if (ret == -1) {
                 LOG_ERR("timer_queue_init failure\n");
-                return -1;
+                goto fail_timer_queue;
         }
 
 	ret = signal_init(&exit_signal);
@@ -1007,6 +1129,8 @@ int main(int argc, char **argv)
 
 	LOG_DBG("servd exits\n");
 
+        registration_clear(&ctx);
+
         if (ctx.router_ip_set && !ctx.router) {
                 hostctrl_service_remove(ctx.lhc, 
                                         SERVICE_RULE_FORWARD,
@@ -1034,10 +1158,14 @@ int main(int argc, char **argv)
         signal_destroy(&exit_signal);
  fail_exit_signal:
         timer_queue_fini(&ctx.tq);
-
-        registration_clear(&ctx);
-        pthread_mutex_destroy(&ctx.lock);
+fail_timer_queue:
+fail_daemon:
 	LOG_DBG("done\n");
+
+        if (log_is_open(DEFAULT_LOG))
+                log_close(DEFAULT_LOG);
+
+        pthread_mutex_destroy(&ctx.lock);
 
         return ret;
 }

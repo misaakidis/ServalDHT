@@ -37,13 +37,17 @@ unsigned int checksum_mode = 0;
 module_param(checksum_mode, uint, S_IRUGO|S_IWUSR);
 MODULE_PARM_DESC(debug, "Set checksum mode (0=software, 1=hardware)");
 
+unsigned int gso = 0;
+module_param(gso, uint, S_IRUGO|S_IWUSR);
+MODULE_PARM_DESC(debug, "Set generic segmentation offloading (0=off, 1=on)");
+
 static char *ifname = NULL;
 module_param(ifname, charp, S_IRUGO);
 MODULE_PARM_DESC(ifname, "Resolve only on this device");
 
-extern int __init proc_init(void);
-extern void __exit proc_fini(void);
-extern int __net_init serval_sysctl_register(struct net *net);
+extern int proc_init(void);
+extern void proc_fini(void);
+extern int serval_sysctl_register(struct net *net);
 extern void serval_sysctl_unregister(struct net *net);
 extern int udp_encap_init(void);
 extern void udp_encap_fini(void);
@@ -110,7 +114,7 @@ static int dev_configuration(struct net_device *dev)
                 service_add(&default_service, 0, SERVICE_RULE_FORWARD, 0, 
                             BROADCAST_SERVICE_DEFAULT_PRIORITY,
                             BROADCAST_SERVICE_DEFAULT_WEIGHT, 
-                            &dst, sizeof(dst), make_target(dev), 
+                            &dst, sizeof(dst), make_dev_target(dev), 
                             GFP_ATOMIC);
         } 
         return ret;
@@ -137,7 +141,7 @@ static int serval_netdev_event(struct notifier_block *this,
 	case NETDEV_GOING_DOWN:
         {           
                 LOG_DBG("netdev GOING DOWN %s\n", dev->name);
-                service_del_dev_all(dev->name);
+                service_del_dev_all(dev->ifindex);
 		break;
         }
 	case NETDEV_DOWN:
@@ -183,7 +187,7 @@ static int serval_inetaddr_event(struct notifier_block *this,
                 LOG_DBG("inetdev DOWN %s - Freezing all flows\n", 
                         dev->name);
                 serval_sock_freeze_flows(dev);
-                service_del_dev_all(dev->name);
+                service_del_dev_all(dev->ifindex);
                 if (net_serval.sysctl_auto_migrate)
                         serval_sock_migrate_iface(dev->ifindex, 0);
                 break;
@@ -202,7 +206,7 @@ static struct notifier_block inetaddr_notifier = {
 	.notifier_call = serval_inetaddr_event,
 };
 
-int serval_module_init(void)
+int __init serval_module_init(void)
 {
 	int err = 0;
 
@@ -212,6 +216,7 @@ int serval_module_init(void)
         
         if (err < 0) {
                 LOG_CRIT("Cannot create proc entries\n");
+                pr_alert("ERROR: Cannot create proc entries\n");
                 goto fail_proc;
         }
 
@@ -219,6 +224,7 @@ int serval_module_init(void)
         
 	if (err < 0) {
                 LOG_CRIT("Cannot create netlink control socket\n");
+                pr_alert("ERROR: Cannot create netlink control socket\n");
                 goto fail_ctrl;
         }
 
@@ -226,6 +232,7 @@ int serval_module_init(void)
 
 	if (err < 0) {
 		 LOG_CRIT("Cannot initialize serval protocol\n");
+         pr_alert("ERROR: Cannot initialize serval protocol\n");
 		 goto fail_serval;
 	}
 
@@ -233,6 +240,7 @@ int serval_module_init(void)
 
 	if (err < 0) {
                 LOG_CRIT("Cannot register netdevice notifier\n");
+                pr_alert("ERROR: Cannot register netdevice notifier\n");
                 goto fail_netdev_notifier;
         }
 
@@ -240,6 +248,7 @@ int serval_module_init(void)
 
 	if (err < 0) {
                 LOG_CRIT("Cannot register inetaddr notifier\n");
+                pr_alert("ERROR: Cannot register inetaddr notifier\n");
                 goto fail_inetaddr_notifier;
         }
 
@@ -249,6 +258,7 @@ int serval_module_init(void)
 
         if (err < 0) {
                 LOG_CRIT("Cannot register Serval sysctl interface\n");
+                pr_alert("ERROR: Cannot register Serval sysctl interface\n");
                 goto fail_sysctl;
 
         }
@@ -257,6 +267,7 @@ int serval_module_init(void)
         
         if (err != 0) {
                 LOG_CRIT("UDP encapsulation init failed\n");
+                pr_alert("ERROR: UDP encapsulation init failed\n");
                 goto fail_udp_encap;
         }
         

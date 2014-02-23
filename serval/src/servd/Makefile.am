@@ -2,6 +2,7 @@ bin_PROGRAMS = \
 	servd
 
 servd_SOURCES = \
+	config.c \
 	servd.c
 
 if OS_LINUX
@@ -15,6 +16,7 @@ servd_SOURCES += \
 endif
 
 servd_headers = \
+	config.h \
 	ifa.h \
 	rtnl.h
 
@@ -37,6 +39,9 @@ noinst_HEADERS = \
 	$(servd_headers)
 
 EXTRA_DIST = Android.mk
+
+install-exec-hook: sysvinit
+	install -m 755 $^ /etc/init.d/servd
 
 clean-local:
 	rm -f *~

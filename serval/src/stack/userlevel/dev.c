@@ -540,8 +540,8 @@ int netdev_populate_table(int sizeof_priv,
 
                 /* Get and save ip configuration */
                 if (ioctl(fd, SIOCGIFADDR, ifr) == -1) {
-                        LOG_ERR("SIOCGIFADDR: %s\n",
-                                strerror(errno));
+                        LOG_ERR("SIOCGIFADDR %s: %s\n",
+                                dev->name, strerror(errno));
                         free_netdev(dev);
                         continue;
                 }
@@ -551,8 +551,8 @@ int netdev_populate_table(int sizeof_priv,
                                 
                 if (strncmp(name, "lo", 2) != 0 && 
                     ioctl(fd, SIOCGIFBRDADDR, ifr) == -1) {
-                        LOG_ERR("SIOCGIFBRDADDR: %s\n",
-                                strerror(errno));
+                        LOG_ERR("SIOCGIFBRDADDR %s: %s\n",
+                                dev->name, strerror(errno));
                         free_netdev(dev);
                         continue;
                 }
@@ -561,8 +561,8 @@ int netdev_populate_table(int sizeof_priv,
                        &((struct sockaddr_in *)&ifr->ifr_broadaddr)->sin_addr, 4);
 
                 if (ioctl(fd, SIOCGIFNETMASK, ifr) == -1) {
-                        LOG_ERR("SIOCGIFNETMASK: %s\n",
-                                strerror(errno));
+                        LOG_ERR("SIOCGIFNETMASK %s: %s\n",
+                                dev->name, strerror(errno));
                         free_netdev(dev);
                         continue;
                 }
@@ -617,7 +617,8 @@ int netdev_populate_table(int sizeof_priv,
                             BROADCAST_SERVICE_DEFAULT_PRIORITY,
                             BROADCAST_SERVICE_DEFAULT_WEIGHT,  
                             &dev->ipv4.broadcast, 
-                            sizeof(dev->ipv4.broadcast), make_target(dev), 0);
+                            sizeof(dev->ipv4.broadcast), 
+                            make_dev_target(dev), 0);
 
                 ret = pthread_create(&dev->thr, NULL, dev_thread, dev);
 
@@ -691,7 +692,7 @@ int dev_get_ipv4_addr(struct net_device *dev, enum addr_type type, void *addr)
 
 enum signal_event dev_read_signal(struct net_device *dev)
 {
-        unsigned char s;
+        unsigned char s = 0;
         struct pollfd fds;
 
         fds.fd = dev->pipefd[0];
@@ -935,10 +936,6 @@ void netdev_fini(void)
                 dev = list_first_entry(&dev_base_head, 
                                        struct net_device, dev_list);
           	read_unlock(&dev_base_lock);       
-                     
-                /*
-                  service_del_dev(dev->name);
-                */
 
                 unregister_netdev(dev);
 

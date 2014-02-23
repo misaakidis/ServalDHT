@@ -18,6 +18,7 @@ public class AppHostCtrl {
 
 	static final int SERVICE_ADD = 0;
 	static final int SERVICE_REMOVE = 1;
+	static final int SERVICE_GET = 2;
 	static HostCtrlCallbacks cbs = null;
 	static HostCtrl hc = null;
 
@@ -56,7 +57,6 @@ public class AppHostCtrl {
 
 		if (hc == null)
 			return;
-
 		String res[] = serviceStr.split(":");
 		
 		if (res.length == 2)
@@ -89,10 +89,13 @@ public class AppHostCtrl {
 		switch (op) {
 		case AppHostCtrl.SERVICE_ADD:
 			Log.d("Serval", "adding service " + sid + " type " + type + " address " + addr);
-			AppHostCtrl.hc.addService(type, sid, prefixBits, 1, 1, addr);
+			AppHostCtrl.hc.addService(sid, prefixBits, 1, 1, addr);
 			break;
 		case AppHostCtrl.SERVICE_REMOVE:
 			AppHostCtrl.hc.removeService(sid, prefixBits, addr);
+			break;
+		case AppHostCtrl.SERVICE_GET:
+			AppHostCtrl.hc.getService(sid, prefixBits, addr);
 			break;
 		default:
 			break;

@@ -3,6 +3,7 @@
 #define _SERVAL_SOCK_H
 
 #include <netinet/serval.h>
+#include <serval/ctrlmsg.h>
 #include <serval/list.h>
 #include <serval/lock.h>
 #include <serval/hash.h>
@@ -150,9 +151,14 @@ struct serval_sock {
         struct flow_id          peer_flowid;
         struct service_id       local_srvid;
         struct service_id       peer_srvid;
+        /* The request queue consists of two sub-queues: syn queue and
+         * accept queue. The request_qlen is the total length of both
+         * sub-queues. */
         struct list_head        syn_queue;
         struct list_head        accept_queue;
-	struct sk_buff_head	ctrl_queue;
+        unsigned long           request_qlen;
+        unsigned long           max_request_qlen;
+        struct sk_buff          *ctrl_queue;
 	struct sk_buff		*ctrl_send_head;
         u8                      local_nonce[SAL_NONCE_SIZE];
         u8                      peer_nonce[SAL_NONCE_SIZE];
@@ -188,6 +194,7 @@ struct serval_sock {
 	u32                     rtt_seq; /* sequence number to update rttvar */
         unsigned long           timeout;
         unsigned long           tot_bytes_sent;
+        unsigned long           tot_bytes_recv;
         unsigned long           tot_pkts_recv;
         unsigned long           tot_pkts_sent;
 };
@@ -239,6 +246,8 @@ struct serval_hslot *serval_hashslot(struct serval_table *table,
 	return &table->hash[serval_hashfn(net, key, keylen, table->mask)];
 }
 
+struct flow_info *serval_sock_stats_flow(struct flow_id *flow, 
+                            struct ctrlmsg_stats_response *resp, int idx);
 void serval_sock_migrate_iface(int old_dev, int new_dev);
 void serval_sock_migrate_flow(struct flow_id *old_f, int new_dev);
 void serval_sock_migrate_service(struct service_id *old_s, int new_if);
@@ -246,8 +255,39 @@ void serval_sock_freeze_flows(struct net_device *dev);
 struct sock *serval_sock_lookup_service(struct service_id *, int protocol);
 struct sock *serval_sock_lookup_flow(struct flow_id *);
 
+
+void serval_sock_delete_keepalive_timer(struct sock *sk);
+void serval_sock_reset_keepalive_timer(struct sock *sk, unsigned long len);
 void serval_sock_hash(struct sock *sk);
 void serval_sock_unhash(struct sock *sk);
+
+
+void serval_sock_request_queue_prune(struct sock *parent,
+                                     const unsigned long interval,
+                                     const unsigned long timeout,
+                                     const unsigned long max_rto);
+
+static inline int serval_sock_request_queue_is_full(struct sock *sk)
+{
+        return serval_sk(sk)->request_qlen > serval_sk(sk)->max_request_qlen;
+}
+
+static inline void serval_sock_request_queue_added(struct sock *sk,
+                                                   unsigned long timeout)
+{
+        if (serval_sk(sk)->request_qlen == 0)
+                serval_sock_reset_keepalive_timer(sk, timeout);
+        serval_sk(sk)->request_qlen++;
+}
+
+static inline void serval_sock_request_queue_removed(struct sock *sk)
+{
+        if (--serval_sk(sk)->request_qlen == 0)
+                serval_sock_delete_keepalive_timer(sk);
+}
+
+void serval_sock_reqsk_queue_add(struct sock *sk, struct request_sock *rsk,
+                                 unsigned long timeout);
 
 static inline void serval_sock_set_flag(struct serval_sock *ssk, 
                                         enum serval_sock_flags flag)
@@ -288,9 +328,6 @@ static inline void serval_sock_reset_xmit_timer(struct sock *sk,
         sk_reset_timer(sk, &ssk->retransmit_timer, ssk->timeout);
 }
 
-void serval_sock_delete_keepalive_timer(struct sock *sk);
-void serval_sock_reset_keepalive_timer(struct sock *sk, unsigned long len);
-
 int __serval_assign_flowid(struct sock *sk);
 struct sock *serval_sk_alloc(struct net *net, struct socket *sock, 
                              gfp_t priority, int protocol, 
@@ -320,8 +357,8 @@ const char *serval_sal_state_str(unsigned int state);
 int serval_sock_set_sal_state(struct sock *sk, unsigned int new_state);
 void serval_sock_rexmit_timeout(unsigned long data);
 
-int __init serval_sock_tables_init(void);
-void __exit serval_sock_tables_fini(void);
+int serval_sock_tables_init(void);
+void serval_sock_tables_fini(void);
 
 void serval_sock_wfree(struct sk_buff *skb);
 void serval_sock_rfree(struct sk_buff *skb);
@@ -345,6 +382,16 @@ static inline void skb_serval_set_owner_r(struct sk_buff *skb,
 }
 
 int serval_sock_rebuild_header(struct sock *sk);
+
+struct sock_list_iterator {
+        struct list_head *head, *curr;
+        struct sock *sk;
+};
+void sock_list_iterator_init(struct sock_list_iterator *iter);
+void sock_list_iterator_destroy(struct sock_list_iterator *iter);
+struct sock *sock_list_iterator_next(struct sock_list_iterator *iter);
+int serval_sock_flow_print_header(char *buf, size_t buflen);
+int serval_sock_flow_print(struct sock *sk, char *buf, size_t buflen);
 
 void flow_table_read_lock(void);
 void flow_table_read_unlock(void);
