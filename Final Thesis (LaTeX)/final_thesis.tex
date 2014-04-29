@@ -51,9 +51,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \begin{center}
-{\large {\bf  ServalDHT: A Decentralized Service Resolution\\ Service for the Serval Architecture}\\[0.5cm] by \\[0.5cm] Isaakidis Marios - 2009437805}
+{\large {\bf  Service-Aware Networking: Service-Centric Architectures and the SDN Paradigm}\\[0.5cm] by \\[0.5cm] Isaakidis Marios - 2009437805}
  ~\\[0.5cm]
-Submitted to the Department of Electrical Engineering, Computer Engineering and Informatics on December 2012, in partial fulfillment of the requirements for the degree of Computer Engineering and Informatics
+Submitted to the Department of Electrical Engineering, Computer Engineering and Informatics on June 2014, in partial fulfillment of the requirements for the degree of Electrical Engineering, Computer Engineering and Informatics
 \end{center}
 
 \vfill
@@ -122,26 +122,6 @@ Middleboxes evoke large time delays, they need extra hardware, power, space.
 And the list goes on.\\
 \indent To sum up, users nowadays want to access a service or to retrieve some data.
 The abstraction of a service can suit well any use of Internet anyone can think of; watch a video, send an e-mail, make a phone call, remotely access a distant machine. Unfortunately so far there is no standardized practice for effectively developing and administering services, abandoning developers to create their own mercurial quick fixes, an expensive, time consuming, inclined to mistakes and complex in orchestration solution.
-
-\newpage
-\subsection{The challenges of private, hierarchical DNS}
-Over time, the Internet has gathered a great power over diverse societies.
-People all around the world are trusting in order to read about the news, form a political opinion, solve problems in their working environment, do market research.
-However, while the Internet continuously affirms its prominent value, it is a surprise how vulnerable it remains to arbitrary (inter)national control and malicious attacks, due to the fact that it is erringly administered by private organizations and its restrained, hierarchical structure. \\
-\indent One of the fundamental components of the the functionality of the Internet is the Domain Name System (DNS).
-It is used to map human readable names of hosts to numerical IP addresses needed for the purpose of locating service providers around the world and effectively routing traffic to them.
-Those identifiers, called domain names, are annually purchased and assigned through the Internet Registry by the private organization ICANN (Internet Corporation for Assigned Names and Numbers).
-In addition to being peremptory, this domination also grants to ICANN the privilege of overseeing the content of Internet, by cutting out or declining registration to "undesirable" domains.
-Nevertheless, various incidents of catachresis are being observed the last years, with governments like the Egyptian one that shut down its DNS servers to muzzle the protesters in 2011, and the Chinese which still blacklists certain domains as a mechanism for Internet censorship.\\
-\indent Moreover, the current Domain Name Service is based on an hierarchical architecture, where (domain name, IP) tuples are cached in midway servers.
-This is causing great problems when a service provider has to renew its IP address, because even if a DNS root server is updated, users still get the old cached IP address yet after hours.
-This time delay can increase to days in cases where recursive DNS servers do not follow the specified TTL values for their cached entries.
-Consequently, hosts are restrained from taking advantage of functionality like multihoming and (virtual machine) migration.
-For the same reason, in cases of machine failure, the failover will take a long time, returning in the meanwhile a server unreachable response. \\
-\indent Besides, inevitably imitating the hierarchical architecture for domain resolution, autonomous networks must have exclusive, trusted machines offering an analogous service all the time.
-This is not always desired, for example in Metropolitan Area Networks (MAN) \nomenclature{MAN}{Metropolitan Area Networks} where ranking does not make sense.\\
-\indent Other problems related to DNS bear upon the lack of a widely adopted protocol to correctly verify the real identity of service hosts.
-DNS has been proved fallible to various attacks, like (Distributed) Denial of Service attacks (known as DDoS \nomenclature{DDoS}{Distributed Denial of Service} and DoS \nomenclature{DoS}{Denial of Service}  attacks), Cache Poisoning (or DNS Spoofing) etc., which aim on deliberately redirecting requests to malevolent hosts.
 
 \newpage
 \subsection{A unified control and data plane}
