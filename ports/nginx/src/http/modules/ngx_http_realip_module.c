@@ -107,12 +107,10 @@ ngx_module_t  ngx_http_realip_module = {
 static ngx_int_t
 ngx_http_realip_handler(ngx_http_request_t *r)
 {
-    u_char                      *p;
+    u_char                      *ip, *p;
     size_t                       len;
-    ngx_str_t                   *value;
     ngx_uint_t                   i, hash;
     ngx_addr_t                   addr;
-    ngx_array_t                 *xfwd;
     ngx_list_part_t             *part;
     ngx_table_elt_t             *header;
     ngx_connection_t            *c;
@@ -139,20 +137,19 @@ ngx_http_realip_handler(ngx_http_request_t *r)
             return NGX_DECLINED;
         }
 
-        value = &r->headers_in.x_real_ip->value;
-        xfwd = NULL;
+        len = r->headers_in.x_real_ip->value.len;
+        ip = r->headers_in.x_real_ip->value.data;
 
         break;
 
     case NGX_HTTP_REALIP_XFWD:
 
-        xfwd = &r->headers_in.x_forwarded_for;
-
-        if (xfwd->elts == NULL) {
+        if (r->headers_in.x_forwarded_for == NULL) {
             return NGX_DECLINED;
         }
 
-        value = NULL;
+        len = r->headers_in.x_forwarded_for->value.len;
+        ip = r->headers_in.x_forwarded_for->value.data;
 
         break;
 
@@ -181,8 +178,8 @@ ngx_http_realip_handler(ngx_http_request_t *r)
                 && len == header[i].key.len
                 && ngx_strncmp(p, header[i].lowcase_key, len) == 0)
             {
-                value = &header[i].value;
-                xfwd = NULL;
+                len = header[i].value.len;
+                ip = header[i].value.data;
 
                 goto found;
             }
@@ -195,13 +192,15 @@ found:
 
     c = r->connection;
 
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "realip: \"%s\"", ip);
+
     addr.sockaddr = c->sockaddr;
     addr.socklen = c->socklen;
     /* addr.name = c->addr_text; */
 
-    if (ngx_http_get_forwarded_addr(r, &addr, xfwd, value, rlcf->from,
+    if (ngx_http_get_forwarded_addr(r, &addr, ip, len, rlcf->from,
                                     rlcf->recursive)
-        != NGX_DECLINED)
+        == NGX_OK)
     {
         return ngx_http_realip_set_addr(r, &addr);
     }
@@ -230,8 +229,7 @@ ngx_http_realip_set_addr(ngx_http_request_t *r, ngx_addr_t *addr)
 
     c = r->connection;
 
-    len = ngx_sock_ntop(addr->sockaddr, addr->socklen, text,
-                        NGX_SOCKADDR_STRLEN, 0);
+    len = ngx_sock_ntop(addr->sockaddr, text, NGX_SOCKADDR_STRLEN, 0);
     if (len == 0) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }

@@ -23,19 +23,16 @@ case "$NGX_CC_NAME" in
         ngx_pcre=`echo \-DPCRE=\"$PCRE\" | sed -e "s/\//$ngx_regex_dirsep/g"`
     ;;
 
-    *)
-        ngx_makefile=
-    ;;
-
 esac
 
 
-if [ -n "$ngx_makefile" ]; then
+case "$NGX_PLATFORM" in
 
-    cat << END                                                >> $NGX_MAKEFILE
+    win32)
 
-`echo "$PCRE/pcre.lib:	$PCRE/pcre.h $NGX_MAKEFILE"			\
-	| sed -e "s/\//$ngx_regex_dirsep/g"`
+        cat << END                                            >> $NGX_MAKEFILE
+
+`echo "$PCRE/pcre.lib:	$NGX_MAKEFILE" | sed -e "s/\//$ngx_regex_dirsep/g"`
 	\$(MAKE) -f auto/lib/pcre/$ngx_makefile $ngx_pcre $ngx_opt
 
 `echo "$PCRE/pcre.h:" | sed -e "s/\//$ngx_regex_dirsep/g"`
@@ -43,9 +40,10 @@ if [ -n "$ngx_makefile" ]; then
 
 END
 
-else
+    ;;
 
-    cat << END                                                >> $NGX_MAKEFILE
+    *)
+        cat << END                                            >> $NGX_MAKEFILE
 
 $PCRE/pcre.h:	$PCRE/Makefile
 
@@ -61,4 +59,6 @@ $PCRE/.libs/libpcre.a:	$PCRE/Makefile
 
 END
 
-fi
+    ;;
+
+esac

@@ -306,7 +306,6 @@ ngx_http_gzip_header_filter(ngx_http_request_t *r)
 
     ngx_http_clear_content_length(r);
     ngx_http_clear_accept_ranges(r);
-    ngx_http_clear_etag(r);
 
     return ngx_http_next_header_filter(r);
 }
@@ -368,11 +367,9 @@ ngx_http_gzip_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
         if (ngx_chain_add_copy(r->pool, &ctx->in, in) != NGX_OK) {
             goto failed;
         }
-
-        r->connection->buffered |= NGX_HTTP_GZIP_BUFFERED;
     }
 
-    if (ctx->nomem || in == NULL) {
+    if (ctx->nomem) {
 
         /* flush busy buffers */
 
@@ -853,8 +850,6 @@ ngx_http_gzip_filter_deflate(ngx_http_request_t *r, ngx_http_gzip_ctx_t *ctx)
         cl->next = NULL;
         *ctx->last_out = cl;
         ctx->last_out = &cl->next;
-
-        r->connection->buffered &= ~NGX_HTTP_GZIP_BUFFERED;
 
         return NGX_OK;
     }

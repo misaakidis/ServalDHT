@@ -370,7 +370,7 @@ ngx_http_special_response_handler(ngx_http_request_t *r, ngx_int_t error)
     ngx_http_core_loc_conf_t  *clcf;
 
     ngx_log_debug3(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
-                   "http special response: %i, \"%V?%V\"",
+                   "http special response: %d, \"%V?%V\"",
                    error, &r->uri, &r->args);
 
     r->err_status = error;
@@ -421,7 +421,7 @@ ngx_http_special_response_handler(ngx_http_request_t *r, ngx_int_t error)
     r->expect_tested = 1;
 
     if (ngx_http_discard_request_body(r) != NGX_OK) {
-        r->keepalive = 0;
+        error = NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
     if (clcf->msie_refresh
@@ -657,7 +657,6 @@ ngx_http_send_special_response(ngx_http_request_t *r,
 
     ngx_http_clear_accept_ranges(r);
     ngx_http_clear_last_modified(r);
-    ngx_http_clear_etag(r);
 
     rc = ngx_http_send_header(r);
 
@@ -756,7 +755,6 @@ ngx_http_send_refresh(ngx_http_request_t *r)
 
     ngx_http_clear_accept_ranges(r);
     ngx_http_clear_last_modified(r);
-    ngx_http_clear_etag(r);
 
     rc = ngx_http_send_header(r);
 

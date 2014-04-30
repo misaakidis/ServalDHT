@@ -620,9 +620,7 @@ ngx_mail_read_command(ngx_mail_session_t *s, ngx_connection_t *c)
             return NGX_ERROR;
         }
 
-        if (s->buffer->pos == s->buffer->last) {
-            return NGX_AGAIN;
-        }
+        return NGX_AGAIN;
     }
 
     cscf = ngx_mail_get_module_srv_conf(s, ngx_mail_core_module);
@@ -663,12 +661,8 @@ void
 ngx_mail_auth(ngx_mail_session_t *s, ngx_connection_t *c)
 {
     s->args.nelts = 0;
-
-    if (s->buffer->pos == s->buffer->last) {
-        s->buffer->pos = s->buffer->start;
-        s->buffer->last = s->buffer->start;
-    }
-
+    s->buffer->pos = s->buffer->start;
+    s->buffer->last = s->buffer->start;
     s->state = 0;
 
     if (c->read->timer_set) {

@@ -13,13 +13,13 @@
 #include <ngx_core.h>
 
 
-typedef struct {
+struct ngx_array_s {
     void        *elts;
     ngx_uint_t   nelts;
     size_t       size;
     ngx_uint_t   nalloc;
     ngx_pool_t  *pool;
-} ngx_array_t;
+};
 
 
 ngx_array_t *ngx_array_create(ngx_pool_t *p, ngx_uint_t n, size_t size);

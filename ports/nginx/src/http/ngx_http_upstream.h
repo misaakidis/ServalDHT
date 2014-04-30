@@ -24,11 +24,10 @@
 #define NGX_HTTP_UPSTREAM_FT_HTTP_502        0x00000020
 #define NGX_HTTP_UPSTREAM_FT_HTTP_503        0x00000040
 #define NGX_HTTP_UPSTREAM_FT_HTTP_504        0x00000080
-#define NGX_HTTP_UPSTREAM_FT_HTTP_403        0x00000100
-#define NGX_HTTP_UPSTREAM_FT_HTTP_404        0x00000200
-#define NGX_HTTP_UPSTREAM_FT_UPDATING        0x00000400
-#define NGX_HTTP_UPSTREAM_FT_BUSY_LOCK       0x00000800
-#define NGX_HTTP_UPSTREAM_FT_MAX_WAITING     0x00001000
+#define NGX_HTTP_UPSTREAM_FT_HTTP_404        0x00000100
+#define NGX_HTTP_UPSTREAM_FT_UPDATING        0x00000200
+#define NGX_HTTP_UPSTREAM_FT_BUSY_LOCK       0x00000400
+#define NGX_HTTP_UPSTREAM_FT_MAX_WAITING     0x00000800
 #define NGX_HTTP_UPSTREAM_FT_NOLIVE          0x40000000
 #define NGX_HTTP_UPSTREAM_FT_OFF             0x80000000
 
@@ -36,7 +35,6 @@
                                              |NGX_HTTP_UPSTREAM_FT_HTTP_502  \
                                              |NGX_HTTP_UPSTREAM_FT_HTTP_503  \
                                              |NGX_HTTP_UPSTREAM_FT_HTTP_504  \
-                                             |NGX_HTTP_UPSTREAM_FT_HTTP_403  \
                                              |NGX_HTTP_UPSTREAM_FT_HTTP_404)
 
 #define NGX_HTTP_UPSTREAM_INVALID_HEADER     40
@@ -118,14 +116,7 @@ struct ngx_http_upstream_srv_conf_s {
     ngx_uint_t                       line;
     in_port_t                        port;
     in_port_t                        default_port;
-    ngx_uint_t                       no_port;  /* unsigned no_port:1 */
 };
-
-
-typedef struct {
-    ngx_addr_t                      *addr;
-    ngx_http_complex_value_t        *value;
-} ngx_http_upstream_local_t;
 
 
 typedef struct {
@@ -166,7 +157,7 @@ typedef struct {
     ngx_array_t                     *hide_headers;
     ngx_array_t                     *pass_headers;
 
-    ngx_http_upstream_local_t       *local;
+    ngx_addr_t                      *local;
 
 #if (NGX_HTTP_CACHE)
     ngx_shm_zone_t                  *cache;
@@ -177,8 +168,6 @@ typedef struct {
 
     ngx_flag_t                       cache_lock;
     ngx_msec_t                       cache_lock_timeout;
-
-    ngx_flag_t                       cache_revalidate;
 
     ngx_array_t                     *cache_valid;
     ngx_array_t                     *cache_bypass;
@@ -256,7 +245,7 @@ typedef struct {
     ngx_uint_t                       no_port; /* unsigned no_port:1 */
 
     ngx_uint_t                       naddrs;
-    ngx_addr_t                      *addrs;
+    in_addr_t                       *addrs;
 
     struct sockaddr                 *sockaddr;
     socklen_t                        socklen;
@@ -287,8 +276,6 @@ struct ngx_http_upstream_s {
     ngx_http_upstream_headers_in_t   headers_in;
 
     ngx_http_upstream_resolved_t    *resolved;
-
-    ngx_buf_t                        from_client;
 
     ngx_buf_t                        buffer;
     off_t                            length;
@@ -335,7 +322,6 @@ struct ngx_http_upstream_s {
 
     unsigned                         buffering:1;
     unsigned                         keepalive:1;
-    unsigned                         upgrade:1;
 
     unsigned                         request_sent:1;
     unsigned                         header_sent:1;

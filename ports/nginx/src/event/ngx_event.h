@@ -69,9 +69,13 @@ struct ngx_event_s {
 
     unsigned         delayed:1;
 
+    unsigned         read_discarded:1;
+
+    unsigned         unexpected_eof:1;
+
     unsigned         deferred_accept:1;
 
-    /* the pending eof reported by kqueue, epoll or in aio chain operation */
+    /* the pending eof reported by kqueue or in aio chain operation */
     unsigned         pending_eof:1;
 
 #if !(NGX_THREADS)
@@ -349,11 +353,6 @@ extern ngx_event_actions_t   ngx_event_actions;
 #define NGX_VNODE_EVENT    0
 
 
-#if (NGX_HAVE_EPOLL) && !(NGX_HAVE_EPOLLRDHUP)
-#define EPOLLRDHUP         0
-#endif
-
-
 #if (NGX_HAVE_KQUEUE)
 
 #define NGX_READ_EVENT     EVFILT_READ
@@ -397,7 +396,7 @@ extern ngx_event_actions_t   ngx_event_actions;
 
 #elif (NGX_HAVE_EPOLL)
 
-#define NGX_READ_EVENT     (EPOLLIN|EPOLLRDHUP)
+#define NGX_READ_EVENT     EPOLLIN
 #define NGX_WRITE_EVENT    EPOLLOUT
 
 #define NGX_LEVEL_EVENT    0
@@ -512,7 +511,6 @@ extern ngx_atomic_t  *ngx_stat_requests;
 extern ngx_atomic_t  *ngx_stat_active;
 extern ngx_atomic_t  *ngx_stat_reading;
 extern ngx_atomic_t  *ngx_stat_writing;
-extern ngx_atomic_t  *ngx_stat_waiting;
 
 #endif
 

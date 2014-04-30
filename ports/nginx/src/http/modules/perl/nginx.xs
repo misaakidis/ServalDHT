@@ -222,11 +222,10 @@ header_in(r, key)
     dXSTARG;
     ngx_http_request_t         *r;
     SV                         *key;
-    u_char                     *p, *lowcase_key, *value, sep;
+    u_char                     *p, *lowcase_key, *cookie;
     STRLEN                      len;
     ssize_t                     size;
     ngx_uint_t                  i, n, hash;
-    ngx_array_t                *a;
     ngx_list_part_t            *part;
     ngx_table_elt_t            *h, **ph;
     ngx_http_header_t          *hh;
@@ -256,18 +255,6 @@ header_in(r, key)
     hh = ngx_hash_find(&cmcf->headers_in_hash, hash, lowcase_key, len);
 
     if (hh) {
-
-        if (hh->offset == offsetof(ngx_http_headers_in_t, cookies)) {
-            sep = ';';
-            goto multi;
-        }
-#if (NGX_HTTP_X_FORWARDED_FOR)
-        if (hh->offset == offsetof(ngx_http_headers_in_t, x_forwarded_for)) {
-            sep = ',';
-            goto multi;
-        }
-#endif
-
         if (hh->offset) {
 
             ph = (ngx_table_elt_t **) ((char *) &r->headers_in + hh->offset);
@@ -281,19 +268,15 @@ header_in(r, key)
             XSRETURN_UNDEF;
         }
 
-    multi:
+        /* Cookie */
 
-        /* Cookie, X-Forwarded-For */
-
-        a = (ngx_array_t *) ((char *) &r->headers_in + hh->offset);
-
-        n = a->nelts;
+        n = r->headers_in.cookies.nelts;
 
         if (n == 0) {
             XSRETURN_UNDEF;
         }
 
-        ph = a->elts;
+        ph = r->headers_in.cookies.elts;
 
         if (n == 1) {
             ngx_http_perl_set_targ((*ph)->value.data, (*ph)->value.len);
@@ -307,12 +290,12 @@ header_in(r, key)
             size += ph[i]->value.len + sizeof("; ") - 1;
         }
 
-        value = ngx_pnalloc(r->pool, size);
-        if (value == NULL) {
+        cookie = ngx_pnalloc(r->pool, size);
+        if (cookie == NULL) {
             XSRETURN_UNDEF;
         }
 
-        p = value;
+        p = cookie;
 
         for (i = 0; /* void */ ; i++) {
             p = ngx_copy(p, ph[i]->value.data, ph[i]->value.len);
@@ -321,10 +304,10 @@ header_in(r, key)
                 break;
             }
 
-            *p++ = sep; *p++ = ' ';
+            *p++ = ';'; *p++ = ' ';
         }
 
-        ngx_http_perl_set_targ(value, size);
+        ngx_http_perl_set_targ(cookie, size);
 
         goto done;
     }
@@ -374,7 +357,7 @@ has_request_body(r, next)
 
     ngx_http_perl_set_request(r);
 
-    if (r->headers_in.content_length_n <= 0 && !r->headers_in.chunked) {
+    if (r->headers_in.content_length_n <= 0) {
         XSRETURN_UNDEF;
     }
 
@@ -403,10 +386,7 @@ request_body(r)
 
     dXSTARG;
     ngx_http_request_t  *r;
-    u_char              *p, *data;
     size_t               len;
-    ngx_buf_t           *buf;
-    ngx_chain_t         *cl;
 
     ngx_http_perl_set_request(r);
 
@@ -417,43 +397,13 @@ request_body(r)
         XSRETURN_UNDEF;
     }
 
-    cl = r->request_body->bufs;
-    buf = cl->buf;
-
-    if (cl->next == NULL) {
-        len = buf->last - buf->pos;
-        data = buf->pos;
-        goto done;
-    }
-
-    len = buf->last - buf->pos;
-    cl = cl->next;
-
-    for ( /* void */ ; cl; cl = cl->next) {
-        buf = cl->buf;
-        len += buf->last - buf->pos;
-    }
-
-    p = ngx_pnalloc(r->pool, len);
-    if (p == NULL) {
-        XSRETURN_UNDEF;
-    }
-
-    data = p;
-    cl = r->request_body->bufs;
-
-    for ( /* void */ ; cl; cl = cl->next) {
-        buf = cl->buf;
-        p = ngx_cpymem(p, buf->pos, buf->last - buf->pos);
-    }
-
-    done:
+    len = r->request_body->bufs->buf->last - r->request_body->bufs->buf->pos;
 
     if (len == 0) {
         XSRETURN_UNDEF;
     }
 
-    ngx_http_perl_set_targ(data, len);
+    ngx_http_perl_set_targ(r->request_body->bufs->buf->pos, len);
 
     ST(0) = TARG;
 
@@ -897,7 +847,8 @@ variable(r, name, value = NULL)
 
     var.len = len;
     var.data = lowcase;
-#if (NGX_DEBUG)
+
+    #if (NGX_DEBUG)
 
     if (value) {
         ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
@@ -906,7 +857,8 @@ variable(r, name, value = NULL)
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                        "perl variable: \"%V\"", &var);
     }
-#endif
+
+    #endif
 
     vv = ngx_http_get_variable(r, &var, hash);
     if (vv == NULL) {

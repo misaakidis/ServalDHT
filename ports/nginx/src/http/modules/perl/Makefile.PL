@@ -21,10 +21,8 @@ WriteMakefile(
                          } (split /\s+/, $ENV{NGX_INCS})),
 
     depend => {
-        'nginx.c'     => join(" ", map {
-                             m#^/# ? $_ : "../../../../../$_"
-                         } (split(/\s+/, $ENV{NGX_DEPS}),
-                            "src/http/modules/perl/ngx_http_perl_module.h"))
+        'nginx.c'     =>
+                  "../../../../../src/http/modules/perl/ngx_http_perl_module.h"
     },
 
     PM => {

@@ -121,7 +121,6 @@ ngx_http_addition_header_filter(ngx_http_request_t *r)
 
     ngx_http_clear_content_length(r);
     ngx_http_clear_accept_ranges(r);
-    ngx_http_clear_etag(r);
 
     return ngx_http_next_header_filter(r);
 }

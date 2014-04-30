@@ -31,7 +31,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, pc->log, 0, "socket %d", s);
 
-    if (s == (ngx_socket_t) -1) {
+    if (s == -1) {
         ngx_log_error(NGX_LOG_ALERT, pc->log, ngx_socket_errno,
                       ngx_socket_n " failed");
         return NGX_ERROR;
@@ -84,7 +84,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
 
     c->log_error = pc->log_error;
 
-    if (pc->sockaddr->sa_family == AF_UNIX) {
+    if (pc->sockaddr->sa_family != AF_INET) {
         c->tcp_nopush = NGX_TCP_NOPUSH_DISABLED;
         c->tcp_nodelay = NGX_TCP_NODELAY_DISABLED;
 
