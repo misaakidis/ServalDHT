@@ -855,6 +855,9 @@ ngx_cmp_sockaddr(struct sockaddr *sa1, struct sockaddr *sa2)
 #if (NGX_HAVE_INET6)
     struct sockaddr_in6  *sin61, *sin62;
 #endif
+#if (NGX_HAVE_SERVAL)
+    struct sockaddr_sv  *ssv1, *ssv2;
+#endif
 #if (NGX_HAVE_UNIX_DOMAIN)
     struct sockaddr_un   *saun1, *saun2;
 #endif
@@ -875,6 +878,23 @@ ngx_cmp_sockaddr(struct sockaddr *sa1, struct sockaddr *sa2)
         }
 
         if (ngx_memcmp(&sin61->sin6_addr, &sin62->sin6_addr, 16) != 0) {
+            return NGX_DECLINED;
+        }
+
+        break;
+#endif
+
+#if (NGX_HAVE_SERVAL)
+    case AF_SERVAL:
+        ssv1 = (struct sockaddr_sv *) sa1;
+        ssv2 = (struct sockaddr_sv *) sa2;
+
+        if (ssv1->sv_prefix_bits != ssv2->sv_prefix_bits) {
+            return NGX_DECLINED;
+        }
+
+        if (ngx_memcmp(&ssv1->sv_srvid, &ssv2->sv_srvid, 
+		       sizeof(ssv2->sv_srvid)) != 0) {
             return NGX_DECLINED;
         }
 

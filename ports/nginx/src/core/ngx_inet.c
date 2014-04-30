@@ -12,6 +12,7 @@
 static ngx_int_t ngx_parse_unix_domain_url(ngx_pool_t *pool, ngx_url_t *u);
 static ngx_int_t ngx_parse_inet_url(ngx_pool_t *pool, ngx_url_t *u);
 static ngx_int_t ngx_parse_inet6_url(ngx_pool_t *pool, ngx_url_t *u);
+static ngx_int_t ngx_parse_serval_url(ngx_pool_t *pool, ngx_url_t *u);
 
 
 in_addr_t
@@ -51,7 +52,6 @@ ngx_inet_addr(u_char *text, size_t len)
 
     return INADDR_NONE;
 }
-
 
 #if (NGX_HAVE_INET6)
 
@@ -172,6 +172,33 @@ ngx_inet6_addr(u_char *p, size_t len, u_char *addr)
 
 #endif
 
+#if (NGX_HAVE_SERVAL)
+
+ngx_int_t
+ngx_serval_addr(u_char *text, size_t len, u_char *addr)
+{
+
+    ngx_int_t i = 0;
+    struct service_id *srvid = (struct service_id *)addr;
+        
+    while (1) {
+	u_char hex32[9];
+	
+	memset(hex32, '0', sizeof(hex32));
+	ngx_cpystrn(hex32, text + (i * 8), len < 8 ? len : 8);
+	hex32[8] = '\0';
+	srvid->s_sid32[i++] = ntohl(ngx_hextoi(hex32, ngx_strlen(hex32)));
+
+	if (len < 8)
+	    break;
+
+	len -= 8;
+    }
+
+    return NGX_OK;
+}
+
+#endif
 
 size_t
 ngx_sock_ntop(struct sockaddr *sa, u_char *text, size_t len, ngx_uint_t port)
@@ -185,7 +212,10 @@ ngx_sock_ntop(struct sockaddr *sa, u_char *text, size_t len, ngx_uint_t port)
 #if (NGX_HAVE_UNIX_DOMAIN)
     struct sockaddr_un   *saun;
 #endif
-
+#if (NGX_HAVE_SERVAL)
+    struct sockaddr_sv   *ssv;
+#endif
+    
     switch (sa->sa_family) {
 
     case AF_INET:
@@ -236,6 +266,14 @@ ngx_sock_ntop(struct sockaddr *sa, u_char *text, size_t len, ngx_uint_t port)
 
 #endif
 
+#if (NGX_HAVE_SERVAL)
+       
+    case AF_SERVAL:
+	ssv = (struct sockaddr_sv *) sa;
+	
+	return ngx_strlen(serval_ntop(&ssv->sv_srvid, (char *)text, len));
+
+#endif
     default:
         return 0;
     }
@@ -520,6 +558,10 @@ ngx_parse_url(ngx_pool_t *pool, ngx_url_t *u)
 
     if (ngx_strncasecmp(p, (u_char *) "unix:", 5) == 0) {
         return ngx_parse_unix_domain_url(pool, u);
+    }
+
+    if (ngx_strncasecmp(p, (u_char *) "serval:", 7) == 0) {
+        return ngx_parse_serval_url(pool, u);
     }
 
     if (p[0] == '[') {
@@ -891,6 +933,75 @@ ngx_parse_inet6_url(ngx_pool_t *pool, ngx_url_t *u)
 #else
 
     u->err = "the INET6 sockets are not supported on this platform";
+
+    return NGX_ERROR;
+
+#endif
+}
+
+static ngx_int_t
+ngx_parse_serval_url(ngx_pool_t *pool, ngx_url_t *u)
+{
+#if (NGX_HAVE_SERVAL)
+    u_char                *p, *host, *last;
+    size_t                len;
+    struct sockaddr_sv  *ssv;
+
+    u->socklen = sizeof(struct sockaddr_sv);
+    ssv = (struct sockaddr_sv *) &u->sockaddr;
+    ssv->sv_family = AF_SERVAL;
+
+    host = u->url.data + 7; /* prefix "serval:" = 7 chars */
+
+    last = u->url.data + u->url.len;
+
+    len = last - host;
+
+    if (len == 0) {
+        u->err = "no service ID";
+        return NGX_ERROR;
+    }
+
+    u->host.len = len + 2;
+    u->host.data = host - 1;
+
+    if (ngx_serval_addr(host, len, ssv->sv_srvid.s_sid) != NGX_OK) {
+        u->err = "invalid service ID";
+        return NGX_ERROR;
+    }
+
+    u->family = AF_SERVAL;
+    u->naddrs = 1;
+
+    u->addrs = ngx_pcalloc(pool, sizeof(ngx_addr_t));
+    if (u->addrs == NULL) {
+        return NGX_ERROR;
+    }
+
+    ssv = ngx_pcalloc(pool, sizeof(struct sockaddr_sv));
+    if (ssv == NULL) {
+        return NGX_ERROR;
+    }
+
+    ngx_memcpy(ssv, u->sockaddr, sizeof(struct sockaddr_sv));
+
+    u->addrs[0].sockaddr = (struct sockaddr *) ssv;
+    u->addrs[0].socklen = sizeof(struct sockaddr_sv);
+
+    p = ngx_pnalloc(pool, u->host.len);
+    if (p == NULL) {
+        return NGX_ERROR;
+    }
+
+    u->addrs[0].name.len = ngx_sprintf(p, "%V",
+                                       &u->host) - p;
+    u->addrs[0].name.data = p;
+
+    return NGX_OK;
+
+#else
+
+    u->err = "the AF_SERVAL sockets are not supported on this platform";
 
     return NGX_ERROR;
 

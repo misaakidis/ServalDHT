@@ -293,6 +293,9 @@ ngx_event_accept(ngx_event_t *ev)
         struct sockaddr_in6  *sin6;
         ngx_uint_t            n;
 #endif
+#if (NGX_HAVE_SERVAL)
+	struct sockaddr_sv *ssv;
+#endif
 
         cidr = ecf->debug_connection.elts;
         for (i = 0; i < ecf->debug_connection.nelts; i++) {
@@ -316,6 +319,11 @@ ngx_event_accept(ngx_event_t *ev)
                 break;
 #endif
 
+#if (NGX_HAVE_SERVAL)
+	    case AF_SERVAL:
+		break;
+#endif
+		
 #if (NGX_HAVE_UNIX_DOMAIN)
             case AF_UNIX:
                 break;

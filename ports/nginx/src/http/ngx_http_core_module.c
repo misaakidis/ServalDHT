@@ -2770,6 +2770,10 @@ ngx_http_get_forwarded_addr(ngx_http_request_t *r, ngx_addr_t *addr,
         case AF_UNIX:
             break;
 #endif
+#if (NGX_HAVE_SERVAL)
+        case AF_SERVAL:
+            break;
+#endif
 
         default: /* AF_INET */
             if ((inaddr & cidr[i].u.in.mask) != cidr[i].u.in.addr) {

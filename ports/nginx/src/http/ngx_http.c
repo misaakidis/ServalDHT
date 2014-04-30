@@ -65,6 +65,10 @@ static ngx_int_t ngx_http_add_addrs(ngx_conf_t *cf, ngx_http_port_t *hport,
 static ngx_int_t ngx_http_add_addrs6(ngx_conf_t *cf, ngx_http_port_t *hport,
     ngx_http_conf_addr_t *addr);
 #endif
+#if (NGX_HAVE_SERVAL)
+static ngx_int_t ngx_http_add_serviceid(ngx_conf_t *cf, ngx_http_port_t *hport,
+    ngx_http_conf_addr_t *addr);
+#endif
 
 ngx_uint_t   ngx_http_max_module;
 
@@ -1171,6 +1175,12 @@ ngx_http_add_listen(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
         break;
 #endif
 
+#if (NGX_HAVE_SERVAL)
+    case AF_SERVAL:
+        p = 0;
+        break;
+#endif
+
 #if (NGX_HAVE_UNIX_DOMAIN)
     case AF_UNIX:
         p = 0;
@@ -1182,6 +1192,8 @@ ngx_http_add_listen(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
         p = sin->sin_port;
         break;
     }
+
+    ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "serval http add listen");
 
     port = cmcf->ports->elts;
     for (i = 0; i < cmcf->ports->nelts; i++) {
@@ -1242,6 +1254,13 @@ ngx_http_add_addresses(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
         break;
 #endif
 
+#if (NGX_HAVE_SERVAL)
+    case AF_SERVAL:
+        off = offsetof(struct sockaddr_sv, sv_srvid);
+        len = 32;
+        break;
+#endif
+
 #if (NGX_HAVE_UNIX_DOMAIN)
     case AF_UNIX:
         off = offsetof(struct sockaddr_un, sun_path);
@@ -1258,6 +1277,7 @@ ngx_http_add_addresses(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
     p = lsopt->u.sockaddr_data + off;
 
     addr = port->addrs.elts;
+    ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "serval http add address");
 
     for (i = 0; i < port->addrs.nelts; i++) {
 
@@ -1710,6 +1730,15 @@ ngx_http_init_listening(ngx_conf_t *cf, ngx_http_conf_port_t *port)
             }
             break;
 #endif
+
+#if (NGX_HAVE_SERVAL)
+        case AF_SERVAL:
+            if (ngx_http_add_serviceid(cf, hport, addr) != NGX_OK) {
+		ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "serval add service id failed");
+                return NGX_ERROR;
+            }
+            break;
+#endif
         default: /* AF_INET */
             if (ngx_http_add_addrs(cf, hport, addr) != NGX_OK) {
                 return NGX_ERROR;
@@ -1901,6 +1930,69 @@ ngx_http_add_addrs6(ngx_conf_t *cf, ngx_http_port_t *hport,
         }
 
         addrs6[i].conf.virtual_names = vn;
+
+        vn->names.hash = addr[i].hash;
+        vn->names.wc_head = addr[i].wc_head;
+        vn->names.wc_tail = addr[i].wc_tail;
+#if (NGX_PCRE)
+        vn->nregex = addr[i].nregex;
+        vn->regex = addr[i].regex;
+#endif
+    }
+
+    return NGX_OK;
+}
+
+#endif
+
+#if (NGX_HAVE_SERVAL)
+
+static ngx_int_t
+ngx_http_add_serviceid(ngx_conf_t *cf, ngx_http_port_t *hport,
+		       ngx_http_conf_addr_t *addr)
+{
+    ngx_uint_t                 i;
+    ngx_http_serval_addr_t    *sids;
+    struct sockaddr_sv        *ssv;
+    ngx_http_virtual_names_t  *vn;
+
+    hport->addrs = ngx_pcalloc(cf->pool,
+                               hport->naddrs * sizeof(ngx_http_serval_addr_t));
+    if (hport->addrs == NULL) {
+        return NGX_ERROR;
+    }
+
+    sids = hport->addrs;
+
+    for (i = 0; i < hport->naddrs; i++) {
+
+        ssv = &addr[i].opt.u.sockaddr_sv;
+        memcpy(&sids[i].srvid, &ssv->sv_srvid, sizeof(ssv->sv_srvid));
+	sids[i].prefix_bits = ssv->sv_prefix_bits;
+        sids[i].conf.default_server = addr[i].default_server;
+#if (NGX_HTTP_SSL)
+        sids[i].conf.ssl = addr[i].opt.ssl;
+#endif
+
+        if (addr[i].hash.buckets == NULL
+            && (addr[i].wc_head == NULL
+                || addr[i].wc_head->hash.buckets == NULL)
+            && (addr[i].wc_tail == NULL
+                || addr[i].wc_tail->hash.buckets == NULL)
+#if (NGX_PCRE)
+            && addr[i].nregex == 0
+#endif
+            )
+        {
+            continue;
+        }
+
+        vn = ngx_palloc(cf->pool, sizeof(ngx_http_virtual_names_t));
+        if (vn == NULL) {
+            return NGX_ERROR;
+        }
+
+        sids[i].conf.virtual_names = vn;
 
         vn->names.hash = addr[i].hash;
         vn->names.wc_head = addr[i].wc_head;

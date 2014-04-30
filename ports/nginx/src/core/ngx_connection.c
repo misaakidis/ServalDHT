@@ -50,6 +50,11 @@ ngx_create_listening(ngx_conf_t *cf, void *sockaddr, socklen_t socklen)
          ls->addr_text_max_len = NGX_INET6_ADDRSTRLEN;
          break;
 #endif
+#if (NGX_HAVE_SERVAL)
+    case AF_SERVAL:
+	ls->addr_text_max_len = NGX_SERVAL_ADDRSTRLEN;
+	break;
+#endif
 #if (NGX_HAVE_UNIX_DOMAIN)
     case AF_UNIX:
          ls->addr_text_max_len = NGX_UNIX_ADDRSTRLEN;

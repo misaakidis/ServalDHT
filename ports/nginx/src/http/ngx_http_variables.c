@@ -1054,6 +1054,9 @@ ngx_http_variable_binary_remote_addr(ngx_http_request_t *r,
 #if (NGX_HAVE_INET6)
     struct sockaddr_in6  *sin6;
 #endif
+#if (NGX_HAVE_SERVAL)
+    struct sockaddr_sv  *ssv;
+#endif
 
     switch (r->connection->sockaddr->sa_family) {
 
@@ -1066,6 +1069,19 @@ ngx_http_variable_binary_remote_addr(ngx_http_request_t *r,
         v->no_cacheable = 0;
         v->not_found = 0;
         v->data = sin6->sin6_addr.s6_addr;
+
+        break;
+#endif
+
+#if (NGX_HAVE_SERVAL)
+    case AF_SERVAL:
+        ssv = (struct sockaddr_sv *) r->connection->sockaddr;
+
+        v->len = sizeof(struct service_id);
+        v->valid = 1;
+        v->no_cacheable = 0;
+        v->not_found = 0;
+        v->data = ssv->sv_srvid.s_sid;
 
         break;
 #endif
@@ -1126,6 +1142,12 @@ ngx_http_variable_remote_port(ngx_http_request_t *r,
     case AF_INET6:
         sin6 = (struct sockaddr_in6 *) r->connection->sockaddr;
         port = ntohs(sin6->sin6_port);
+        break;
+#endif
+
+#if (NGX_HAVE_SERVAL)
+    case AF_INET6:
+        port = 0;
         break;
 #endif
 
@@ -1204,6 +1226,12 @@ ngx_http_variable_server_port(ngx_http_request_t *r,
     case AF_INET6:
         sin6 = (struct sockaddr_in6 *) r->connection->local_sockaddr;
         port = ntohs(sin6->sin6_port);
+        break;
+#endif
+
+#if (NGX_HAVE_SERVAL)
+    case AF_SERVAL:
+        port = 0;
         break;
 #endif
 

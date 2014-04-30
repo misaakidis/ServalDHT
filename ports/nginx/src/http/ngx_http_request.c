@@ -254,6 +254,10 @@ ngx_http_init_request(ngx_event_t *rev)
     struct sockaddr_in6        *sin6;
     ngx_http_in6_addr_t        *addr6;
 #endif
+#if (NGX_HAVE_SERVAL)
+    struct sockaddr_sv         *ssv;
+    ngx_http_serval_addr_t     *addr_sv;
+#endif
 
 #if (NGX_STAT_STUB)
     (void) ngx_atomic_fetch_add(ngx_stat_reading, -1);
@@ -347,6 +351,25 @@ ngx_http_init_request(ngx_event_t *rev)
             break;
 #endif
 
+#if (NGX_HAVE_SERVAL)
+        case AF_SERVAL:
+            ssv = (struct sockaddr_sv *) c->local_sockaddr;
+
+            addr_sv = port->addrs;
+
+            /* the last address is "*" */
+
+            for (i = 0; i < port->naddrs - 1; i++) {
+                if (ngx_memcmp(&addr_sv[i].srvid, &ssv->sv_srvid, sizeof(ssv->sv_srvid)) == 0) {
+                    break;
+                }
+            }
+
+            addr_conf = &addr_sv[i].conf;
+
+            break;
+#endif
+
         default: /* AF_INET */
             sin = (struct sockaddr_in *) c->local_sockaddr;
 
@@ -373,6 +396,13 @@ ngx_http_init_request(ngx_event_t *rev)
         case AF_INET6:
             addr6 = port->addrs;
             addr_conf = &addr6[0].conf;
+            break;
+#endif
+
+#if (NGX_HAVE_SERVAL)
+        case AF_SERVAL:
+            addr_sv = port->addrs;
+            addr_conf = &addr_sv[0].conf;
             break;
 #endif
 

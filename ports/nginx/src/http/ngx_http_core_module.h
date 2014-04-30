@@ -63,6 +63,9 @@ typedef struct {
 #if (NGX_HAVE_UNIX_DOMAIN)
         struct sockaddr_un     sockaddr_un;
 #endif
+#if (NGX_HAVE_SERVAL)
+	struct sockaddr_sv     sockaddr_sv;
+#endif
         u_char                 sockaddr_data[NGX_SOCKADDRLEN];
     } u;
 
@@ -232,6 +235,16 @@ typedef struct {
     struct in6_addr            addr6;
     ngx_http_addr_conf_t       conf;
 } ngx_http_in6_addr_t;
+
+#endif
+
+#if (NGX_HAVE_SERVAL)
+
+typedef struct {
+    struct service_id          srvid;
+    u_char                     prefix_bits;
+    ngx_http_addr_conf_t       conf;
+} ngx_http_serval_addr_t;
 
 #endif
 

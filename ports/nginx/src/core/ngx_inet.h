@@ -27,6 +27,11 @@
 #define NGX_UNIX_ADDRSTRLEN                                                  \
     (sizeof(struct sockaddr_un) - offsetof(struct sockaddr_un, sun_path))
 
+#if (NGX_HAVE_SERVAL)
+#define NGX_SERVAL_ADDRSTRLEN						\
+    (sizeof("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" - 1))
+#endif
+
 #if (NGX_HAVE_UNIX_DOMAIN)
 #define NGX_SOCKADDR_STRLEN   (sizeof("unix:") - 1 + NGX_UNIX_ADDRSTRLEN)
 #else

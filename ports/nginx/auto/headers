@@ -11,3 +11,4 @@ ngx_include="sys/param.h";   . auto/include
 ngx_include="sys/mount.h";   . auto/include
 ngx_include="sys/statvfs.h"; . auto/include
 ngx_include="crypt.h";       . auto/include
+ngx_include="netinet/serval.h"; . auto/include
