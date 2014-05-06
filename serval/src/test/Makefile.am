@@ -11,7 +11,8 @@ bin_PROGRAMS = \
 	udp_server \
 	udp_client_user \
 	udp_client \
-	manysockets
+	manysockets \
+	http_client
 
 if HAVE_SSL
 bin_PROGRAMS += \
@@ -84,6 +85,10 @@ udp_client_user_LDFLAGS =-L$(top_srcdir)/src/libserval -lserval
 udp_client_SOURCES = udp_client.c
 udp_client_CPPFLAGS =-DSERVAL_NATIVE -I$(top_srcdir)/include
 udp_client_LDFLAGS =
+
+http_client_SOURCES = http_client.c 
+http_client_CPPFLAGS =-DSERVAL_NATIVE -I$(top_srcdir)/include
+http_client_LDFLAGS =
 
 if HAVE_SSL
 tcp_client_user_SOURCES = tcp_client.c common.c

@@ -195,6 +195,8 @@ ngx_serval_addr(u_char *text, size_t len, u_char *addr)
 	len -= 8;
     }
 
+    printf("Serval service-id: %s\n", service_id_to_str(srvid));
+
     return NGX_OK;
 }
 

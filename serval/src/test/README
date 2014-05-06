@@ -30,6 +30,10 @@ udp_server - A server that runs "connected UDP" and prints received
 udp_client - The client connnecting to udp_server. Takes input from
 	     stdin and sends to the server, essentially implementing a
 	     chat client.
+	     
+http_client - An http client that requests a web page given the 
+		 hostname and page name, prints the content to stdout and 
+		 completes execution.
 
 tcp_client - A Serval TCP client that sends a data stream (either a
 	     file or random data) to a Serval TCP server sink. Can

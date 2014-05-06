@@ -53,6 +53,7 @@ src/test/tcp_client
 src/test/tcp_server_user
 src/test/tcp_server
 src/test/automigrated
+src/test/http_client
 src/translator/translator
 src/translator/sysvinit
 src/translator/transproxy
