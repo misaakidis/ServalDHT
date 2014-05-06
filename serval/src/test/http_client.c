@@ -105,7 +105,7 @@ int send_httpget_req(int sock) {
 	memset(buf, 0, sizeof(buf));
 	int htmlstart = 0;
 	char * htmlcontent;
-	while((tmpres = recv(sock, buf, BUFSIZ, 0)) > 0){
+	while((tmpres = recv_sv(sock, buf, BUFSIZ, 0)) > 0){
 		if(htmlstart == 0)
 		{
 			/* Under certain conditions this will not work.
