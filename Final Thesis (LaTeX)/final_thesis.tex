@@ -5,6 +5,7 @@
 \usepackage{tikz}
 \usepackage{hyperref}
 \usepackage{nomencl}
+\usepackage{pdfpages}
 
 \makenomenclature
 
@@ -73,10 +74,17 @@ Then, in the following two sections, it is outlined the theoretical background a
 \noindent Thesis Supervisor: Dr. Sirivianos Michael\\
 \noindent Title: Lecturer at CUT's EEIT Department}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\thispagestyle{empty}
+{\Huge \bf \noindent PROBLEM DEFINITION}
+\addcontentsline{toc}{section}{PROBLEM DEFINITION}
+\newpage
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\section{Problem Definition}
+\section{Defining the Problem}
 The concept of Internet has radically changed since its first onset, around half a century ago; millions of multi-homed users, possibly moving across networks, are asking for data and services offered by multiple servers, which can be replicated and situated in various geographical locations.
 Yet, due to legacy reverse compatibility reasons, bureaucracy obstructions and the compulsion of large scale testing and deployment, only a few modifications managed to consolidate and provide the framework for communicating in the largest computer network.
 This situation is leading to erratic band-aids where network administrators and developers overload the existing network abstractions, like the IP \nomenclature{IP}{Internet Protocol} addresses and ports, in order to provide the supplementary functionality needed by a network with dynamic users and where services and data become first-class citizens.\\
@@ -153,7 +161,14 @@ New solutions copy the current stack so changes should be made as soon as possib
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\section{Description of Relative Systems}
+\thispagestyle{empty}
+{\Huge \bf \noindent SERVICE-CENTRIC\\ NETWORKING}
+\addcontentsline{toc}{section}{SERVIC-SENTRIC NETWORKING}
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{The Serval Networking Architecture}
 \input{./serval.tex}
 
 
@@ -184,7 +199,8 @@ Cloud computing
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \section{Service-centric architectures and Software Defined Networking}
-
+service-level routing
+service registration as policy
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
@@ -238,5 +254,21 @@ User Serval as it is, but with a Distributed Service Resolution Service
 {\Huge \bf \noindent APPENDIX}
 \addcontentsline{toc}{section}{APPENDIX}
 \newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\thispagestyle{empty}
+{\Huge \bf \noindent A. PRESENTATIONS}
+\addcontentsline{toc}{subsection}{A. PRESENTATIONS}
+
+\addcontentsline{toc}{subsubsection}{A.1 Serval Architecture}
+\includepdf[pages={-}]{ServalDHT-Pres2.pdf}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\thispagestyle{empty}
+{\Huge \bf \noindent B. SOURCE CODE}
+\addcontentsline{toc}{subsection}{B. SOURCE CODE}
+\label{sec:sourcecode}
 
 \end{document}

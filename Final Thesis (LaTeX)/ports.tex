@@ -1,0 +1,12 @@
+\subsubsection{Porting a networked application to Serval}
+There are many 
+
+- Requires to rebuild the whole project with the new abstractions (serval active sockets) and include serval libraries
+
+- Depends on the independence of the connectivity modules
+if patterns like singleton then porting is easier
+calls in many files then complexity arises
+
+- Extra implemented functionality can cause unexpected runtime results
+example: 2 levels of loadbalancing
+

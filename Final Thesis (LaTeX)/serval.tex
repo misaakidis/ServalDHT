@@ -1,13 +1,47 @@
-\subsection{The Serval Architecture}
+z\subsection{Introduction}
 Serval\footnote{More information about the Serval Architecture can be found in the presentation in the Appendix.} is an end-host stack and a service-centric network architecture, proposed and prototyped by the {https://sns.cs.princeton.edu/}{systems and networking group} at {https://www.princeton.edu}{Princeton University}, in 2012.
 
 
-\subsubsection{Proposed abstractions}
-\subsubsection{Serval Network Stack}
-\subsubsection*{Service Controller}
-\subsubsection*{Service Access Layer}
-\subsubsection{Application portability and incremental deployment}
-\subsubsection{Service Resolution in the Serval architecture}
-\subsubsection{Porting a networked application to Serval}
+\subsection{Proposed abstractions}
+\subsection{Serval Network Stack}
+\subsubsection{Service Controller}
+\subsubsection{Service Access Layer}
+\subsection{Service Resolution in the Serval architecture}
+
+\subsection{Application portability and incremental deployment}
+- A translator can be used but: (ADD SCHEMA)
+works as an intermediate
+slows down performance
+apps still work with the traditional apis
+ -- adds complexity, translator will have to support many versions/protocols and error proof for them
+ -- reimplements the functionality already working on SAL
+
+
+\input{./ports.tex}
+
+\subsection{Profiling the Serval prototype implementation}
+Among the admirable headliners of Serval is the working prototype version of the proposed architecture.
+In more than 28000 lines of code\footnote{Source code is open source and can be found in their public repository\\ \url{https://github.com/princeton-sns/serval/}.} covering functionality of the Service Access Layer (both in userlevel operation and as a Linux kernel module), bindings for multiple programming languages, a translator, libraries and examples for writing serval compatible applications, and with a reported throughput comparable to the unmodified TCP/IP stack, it is clearly showcased the feasibility of the solution.\\
+\indent In this section we are profiling the prototype in regard to the following parameters:
+\begin{enumerate}
+  \item Memory Management
+  \item CPU Instructions and Cycles
+  \item System Calls times
+  \item Execution time needed for the completion of a numbered iteration of requests
+  \item The sum of requests that can be satisfied within a given timeframe
+\end{enumerate}
+Then we will be graphically presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family.\\
+For the measurements we ported the nginx\footnote{Nginx engine-ex is an Open Source HTTP,reverse proxy and mail proxy server\\ \url{http://nginx.org/}.} web server to serval architecture, integrating the nginx\_1.2.9\_serval\_fqdn branch commits into the build procedure.
+Also we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call.\\
+Source code of both can be found in the Appendix\ref{sec:sourcecode}.
+
+
+\iffalse
+1) memory (oprofile)
+2) CPU cycles (callgrind)
+3) system calls time (strace)
+4) timed execution of 1000 times
+5) requests per second
+\fi
 
 TODO: Complete this section, maybe add HIP, Chord and OpenFlow
