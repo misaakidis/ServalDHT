@@ -26,8 +26,22 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
-{\Large \bf \noindent Abstract}
-\\Here goes the final thesis abstract
+{\Large \bf \noindent Abstract} \\[0.13cm]
+
+\noindent The concept of the Internet has radically changed since its first onset, around half a century ago; millions of multi-homed users, often moving across networks, are asking for data and services offered by multiple servers, which can be replicated and situated in various geographical locations.
+Yet only a few modifications managed to consolidate and provide the framework for communicating in the largest computer network.
+
+This situation is leading to erratic band-aids where network administrators and developers overload the existing network abstractions or resort to middleware, in order to provide the supplementary functionality needed by a network where services and data become first-class citizens.
+
+In this thesis we are introducing the approach of Service-Aware Networking, a consolidation of Service-Centric abstractions and the Software Defined Networking (SDN) paradigm.
+
+Starting with an explanation of the principles behind Service-Centric networking, we are focusing on the Serval architecture along with its functional prototype.
+Results of benchmarks will be presented juxtaposed to the measurements of the unmodified TCP/IP stack.
+
+Finally we are suggesting that Software Defined Networking could benefit from the provided abstractions and enable services running in – possibly distributed – datacenters to automatically, and according to the rights they have been granted, manipulate virtual networks to better utilize the underlying network infrastructure, conforming to their dynamic needs.\\[0.1cm]
+
+\noindent The project is Open Source and can be found at\\ 
+\noindent \href{https://github.com/misaakidis/ServalDHT}{https://github.com/misaakidis/ServalDHT}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,6 +99,7 @@ Then, in the following two sections, it is outlined the theoretical background a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \section{Defining the Problem}
+\label{problemdefinition}
 The concept of Internet has radically changed since its first onset, around half a century ago; millions of multi-homed users, possibly moving across networks, are asking for data and services offered by multiple servers, which can be replicated and situated in various geographical locations.
 Yet, due to legacy reverse compatibility reasons, bureaucracy obstructions and the compulsion of large scale testing and deployment, only a few modifications managed to consolidate and provide the framework for communicating in the largest computer network.
 This situation is leading to erratic band-aids where network administrators and developers overload the existing network abstractions, like the IP \nomenclature{IP}{Internet Protocol} addresses and ports, in order to provide the supplementary functionality needed by a network with dynamic users and where services and data become first-class citizens.\\
@@ -162,7 +177,7 @@ New solutions copy the current stack so changes should be made as soon as possib
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
-{\Huge \bf \noindent SERVICE-CENTRIC\\ NETWORKING}
+{\Huge \bf \noindent SERVICE-CENTRIC\\[0.2cm] NETWORKING}
 \addcontentsline{toc}{section}{SERVIC-SENTRIC NETWORKING}
 \newpage
 
@@ -180,6 +195,14 @@ Therefore references should contain an adequate number of publications on all th
 \indent The publications that have been used so far as a source of information follow in section 7.
 Brief summaries can be found in Appendix at the end of the report.
 
+
+\subsection{Decoupling a Host Identity from its location}
+\subsubsection{HIP}
+\subsubsection{DOA}
+\subsubsection{LISP}
+\subsubsection{LNA}
+\subsubsection{HAIR}
+\subsubsection{i3}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
@@ -231,7 +254,7 @@ User Serval as it is, but with a Distributed Service Resolution Service
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\section{Expected Results}
+\section{Future Research}
 1. Implement Service Controller (compatible with OpenFlow)
 \\2. Implement ServalDHT SRS
 \\3. Results of deployment in PlanetLab
@@ -262,6 +285,7 @@ User Serval as it is, but with a Distributed Service Resolution Service
 \addcontentsline{toc}{subsection}{A. PRESENTATIONS}
 
 \addcontentsline{toc}{subsubsection}{A.1 Serval Architecture}
+\label{sec:servaldhtpres}
 \includepdf[pages={-}]{ServalDHT-Pres2.pdf}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

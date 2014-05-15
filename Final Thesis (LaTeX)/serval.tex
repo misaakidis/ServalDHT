@@ -1,8 +1,13 @@
-z\subsection{Introduction}
-Serval\footnote{More information about the Serval Architecture can be found in the presentation in the Appendix.} is an end-host stack and a service-centric network architecture, proposed and prototyped by the {https://sns.cs.princeton.edu/}{systems and networking group} at {https://www.princeton.edu}{Princeton University}, in 2012.
+\subsection{Introduction}
+Serval\footnote{More information about the Serval Architecture can be found in the presentation in the Appendix (\ref{sec:servaldhtpres}).} is an end-host stack and a service-centric network architecture, proposed and prototyped by the \href{https://sns.cs.princeton.edu/}{systems and networking group} at \href{https://www.princeton.edu}{Princeton University}, in 2012.
 
+\paragraph{} In the original paper "A Service Access Layer, at Your Service" (2011)\cite{Freedman2011} and later on "Serval: An End-Host Stack for Service-Centric Networking" (2012)\cite{Nordstrom2012}, Nordstr{\"o}m et. al. first decompose the needs of modern networked applications, locate the discordances with the current Network Stack, study previous work and how each of them individually fails to stand as a proper solution, reconsider the current TCP/IP Networking Stack and propose two simple abstractions that can obliterate the legacy problems discussed on Problem Definition\ref{problemdefinition}.\\
+\indent Furthermore they introduce 	
 
 \subsection{Proposed abstractions}
+
+
+
 \subsection{Serval Network Stack}
 \subsubsection{Service Controller}
 \subsubsection{Service Access Layer}
@@ -30,18 +35,21 @@ In more than 28000 lines of code\footnote{Source code is open source and can be 
   \item Execution time needed for the completion of a numbered iteration of requests
   \item The sum of requests that can be satisfied within a given timeframe
 \end{enumerate}
-Then we will be graphically presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family.\\
-For the measurements we ported the nginx\footnote{Nginx engine-ex is an Open Source HTTP,reverse proxy and mail proxy server\\ \url{http://nginx.org/}.} web server to serval architecture, integrating the nginx\_1.2.9\_serval\_fqdn branch commits into the build procedure.
-Also we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call.\\
-Source code of both can be found in the Appendix\ref{sec:sourcecode}.
+Then we will be graphically presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family. The first four tests have not been published before.
+\paragraph{} Output was obtained on a ...... machine running Ubuntu 11.04 (Natty Narwahl) kernel version 2.6.38-16-generic (rebuilt with debug symbols). Serval was built with --enable-debug option for the first three tests.\\
+For the measurements we ported the nginx\footnote{Nginx [engine-ex] is an Open Source HTTP,reverse proxy and mail proxy server\\ \url{http://nginx.org/}.} web server to serval architecture, integrating the [nginx\_1.2.9\_serval\_fqdn] branch commits into the build procedure. Also, we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call. Source code of both can be found in the Appendix (\ref{sec:sourcecode}).
 
 
 \iffalse
+gprof
+perf
+google-profile tools
 1) memory (oprofile)
 2) CPU cycles (callgrind)
 3) system calls time (strace)
 4) timed execution of 1000 times
 5) requests per second
+6) Number of packers per request, bytes sent, packet structure
 \fi
 
 TODO: Complete this section, maybe add HIP, Chord and OpenFlow
