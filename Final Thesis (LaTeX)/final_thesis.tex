@@ -6,10 +6,24 @@
 \usepackage{hyperref}
 \usepackage{nomencl}
 \usepackage{pdfpages}
+\usepackage{listings}
+
+\lstdefinelanguage{diff}{
+  morecomment=[f][\color{blue}]{@@},     % group identifier
+  morecomment=[f][\color{red}]-,         % deleted lines 
+  morecomment=[f][\color{green}]+,       % added lines
+  morecomment=[f][\color{magenta}]{---}, % Diff header lines (must appear after +,-)
+  morecomment=[f][\color{magenta}]{+++},
+  breaklines=true,breakindent=0pt, breakatwhitespace=true,
+  postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{black}\hookrightarrow\space}},
+  basicstyle=\ttfamily\small
+}
 
 \makenomenclature
 
 \begin{document}
+
+% TODO Add CUT template titlepage
 
 %Insert titlepage
 \input{./title.tex}
@@ -36,9 +50,9 @@ This situation is leading to erratic band-aids where network administrators and 
 In this thesis we are introducing the approach of Service-Aware Networking, a consolidation of Service-Centric abstractions and the Software Defined Networking (SDN) paradigm.
 
 Starting with an explanation of the principles behind Service-Centric networking, we are focusing on the Serval architecture along with its functional prototype.
-Results of benchmarks will be presented juxtaposed to the measurements of the unmodified TCP/IP stack.
+Results of benchmarks are presented juxtaposed to the measurements of the unmodified TCP/IP stack.
 
-Finally we are suggesting that Software Defined Networking could benefit from the provided abstractions and enable services running in – possibly distributed – datacenters to automatically, and according to the rights they have been granted, manipulate virtual networks to better utilize the underlying network infrastructure, conforming to their dynamic needs.\\[0.1cm]
+Finally we are suggesting that Software Defined Networking could benefit from Serval's service-level data plane and enable services running in – possibly distributed – datacenters to automatically, and according to the rights they have been granted, manipulate virtual networks to better utilize the underlying network infrastructure, conforming to their dynamic needs.\\[0.1cm]
 
 \noindent The project is Open Source and can be found at\\ 
 \noindent \href{https://github.com/misaakidis/ServalDHT}{https://github.com/misaakidis/ServalDHT}
@@ -288,11 +302,32 @@ User Serval as it is, but with a Distributed Service Resolution Service
 \label{sec:servaldhtpres}
 \includepdf[pages={-}]{ServalDHT-Pres2.pdf}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
 {\Huge \bf \noindent B. SOURCE CODE}
 \addcontentsline{toc}{subsection}{B. SOURCE CODE}
 \label{sec:sourcecode}
+
+\newpage
+{\huge \bf \noindent B.1 nginx serval port}
+\addcontentsline{toc}{subsubsection}{B.1 nginx serval port}\\[0.5cm]
+\textbf{File:} ports/nginx/nginx-1.2.9-integrated-serval.patch\\
+\textbf{Description:} Patch nginx version 1.2.9 to use Serval active sockets. \\
+\textbf{Instructions: }
+\begin{enumerate} \itemsep1pt \parskip0pt 
+\parsep0pt
+	\item Apply the patch using git
+	\item Copy libraries from serval/include to a path included in the search path of your compiler (normally that should be /usr/local/include/)
+	\item Configure nginx with serval (ports/nginx/configure --with-serval)
+	\item Make sure configure script found netinet/serval.h library and can build AF\_SERVAL
+	\item If everything is fine, you should be able to see "+ using serval active sockets" in the configuration summary
+	\item Compile with make and then execute make install
+	\item Edit nginx configuration file (by default /usr/local/nginx/conf/nginx.conf) and uncomment the virtual host configured for the serval architecture
+	\item Restart nginx and now you can accept both AF\_INET and AF\_SERVAL requests
+	\item nginx Service ID is 8\\[0.5cm]
+\end{enumerate}
+\lstinputlisting[language=diff]{source_code/nginx-1.2.9-integrated-serval.patch}
 
 \end{document}

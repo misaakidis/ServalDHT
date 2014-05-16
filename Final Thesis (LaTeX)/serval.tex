@@ -2,7 +2,10 @@
 Serval\footnote{More information about the Serval Architecture can be found in the presentation in the Appendix (\ref{sec:servaldhtpres}).} is an end-host stack and a service-centric network architecture, proposed and prototyped by the \href{https://sns.cs.princeton.edu/}{systems and networking group} at \href{https://www.princeton.edu}{Princeton University}, in 2012.
 
 \paragraph{} In the original paper "A Service Access Layer, at Your Service" (2011)\cite{Freedman2011} and later on "Serval: An End-Host Stack for Service-Centric Networking" (2012)\cite{Nordstrom2012}, Nordstr{\"o}m et. al. first decompose the needs of modern networked applications, locate the discordances with the current Network Stack, study previous work and how each of them individually fails to stand as a proper solution, reconsider the current TCP/IP Networking Stack and propose two simple abstractions that can obliterate the legacy problems discussed on Problem Definition\ref{problemdefinition}.\\
-\indent Furthermore they introduce 	
+\indent Furthermore they introduce a formally-verified end-to-end connection control protocol (ECCP) 
+
+\subsection{Serval Architecture in a few words}
+
 
 \subsection{Proposed abstractions}
 
@@ -26,7 +29,7 @@ apps still work with the traditional apis
 
 \subsection{Profiling the Serval prototype implementation}
 Among the admirable headliners of Serval is the working prototype version of the proposed architecture.
-In more than 28000 lines of code\footnote{Source code is open source and can be found in their public repository\\ \url{https://github.com/princeton-sns/serval/}.} covering functionality of the Service Access Layer (both in userlevel operation and as a Linux kernel module), bindings for multiple programming languages, a translator, libraries and examples for writing serval compatible applications, and with a reported throughput comparable to the unmodified TCP/IP stack, it is clearly showcased the feasibility of the solution.\\
+In more than 28000 lines of code\footnote{Source code is open source and can be found in their public repository\\ \url{https://github.com/princeton-sns/serval/}.} covering functionality of the Service Access Layer (both in userlevel operation and as a Linux kernel module), bindings for multiple programming languages, a translator, libraries and examples for writing Serval compatible applications, and with a reported throughput comparable to the unmodified TCP/IP stack, it is clearly showcased the feasibility of the solution.\\
 \indent In this section we are profiling the prototype in regard to the following parameters:
 \begin{enumerate}
   \item Memory Management
@@ -37,7 +40,7 @@ In more than 28000 lines of code\footnote{Source code is open source and can be 
 \end{enumerate}
 Then we will be graphically presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family. The first four tests have not been published before.
 \paragraph{} Output was obtained on a ...... machine running Ubuntu 11.04 (Natty Narwahl) kernel version 2.6.38-16-generic (rebuilt with debug symbols). Serval was built with --enable-debug option for the first three tests.\\
-For the measurements we ported the nginx\footnote{Nginx [engine-ex] is an Open Source HTTP,reverse proxy and mail proxy server\\ \url{http://nginx.org/}.} web server to serval architecture, integrating the [nginx\_1.2.9\_serval\_fqdn] branch commits into the build procedure. Also, we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call. Source code of both can be found in the Appendix (\ref{sec:sourcecode}).
+For the measurements we ported the nginx\footnote{Nginx [engine-ex] is an Open Source HTTP,reverse proxy and mail proxy server\\ \url{http://nginx.org/}.} web server to Serval architecture, integrating the [nginx\_1.2.9\_serval\_fqdn] branch commits into the build procedure. Also, we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call. Source code of both can be found in the Appendix (\ref{sec:sourcecode}).
 
 
 \iffalse
