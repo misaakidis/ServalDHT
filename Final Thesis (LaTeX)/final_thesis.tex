@@ -14,7 +14,7 @@
   morecomment=[f][\color{green}]+,       % added lines
   morecomment=[f][\color{magenta}]{---}, % Diff header lines (must appear after +,-)
   morecomment=[f][\color{magenta}]{+++},
-  breaklines=true,breakindent=0pt, breakatwhitespace=true,
+  breaklines=true,breakindent=0pt,breakatwhitespace=true,
   postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{black}\hookrightarrow\space}},
   basicstyle=\ttfamily\small
 }
@@ -310,6 +310,8 @@ User Serval as it is, but with a Distributed Service Resolution Service
 \addcontentsline{toc}{subsection}{B. SOURCE CODE}
 \label{sec:sourcecode}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 {\huge \bf \noindent B.1 nginx serval port}
 \addcontentsline{toc}{subsubsection}{B.1 nginx serval port}\\[0.5cm]
@@ -329,5 +331,7 @@ User Serval as it is, but with a Distributed Service Resolution Service
 	\item nginx Service ID is 8\\[0.5cm]
 \end{enumerate}
 \lstinputlisting[language=diff]{source_code/nginx-1.2.9-integrated-serval.patch}
+
+
 
 \end{document}

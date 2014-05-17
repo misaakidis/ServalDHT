@@ -25,10 +25,11 @@
 #include <libserval/serval.h>
 
 static const char *progname = "http_client";
-static unsigned short DEFAULT_SERVER_SID = 80;
+static unsigned short DEFAULT_SERVER_SID = 8;
 static struct service_id server_srvid;
 static char *page = "/";
 static char *host = "127.0.0.1";
+static int should_exit = 0;
 char *get;
 char buf[BUFSIZ+1];
 
@@ -105,7 +106,8 @@ int send_httpget_req(int sock) {
 	memset(buf, 0, sizeof(buf));
 	int htmlstart = 0;
 	char * htmlcontent;
-	while((tmpres = recv_sv(sock, buf, BUFSIZ, 0)) > 0){
+	while(!should_exit){
+		tmpres = recv_sv(sock, buf, BUFSIZ, 0);
 		if(htmlstart == 0)
 		{
 			/* Under certain conditions this will not work.
@@ -124,7 +126,10 @@ int send_httpget_req(int sock) {
 			fprintf(stdout, htmlcontent);
 		}
 
-		memset(buf, 0, tmpres);
+		if(tmpres <= 0)
+		        should_exit = 1;
+
+		//memset(buf, 0, tmpres);
 	}
 	if(tmpres < 0)
 	{
