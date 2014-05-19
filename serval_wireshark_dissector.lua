@@ -1,8 +1,20 @@
+-- 
 -- Serval protocol dissector for wireshark
+-- 
+-- Authors: Marios Isaakidis <misaakidis@yahoo.gr
+-- 
+-- This program is free software; you can redistribute it and/or
+-- modify it under the terms of the GNU General Public License as
+-- published by the Free Software Foundation; either version 2 of
+-- the License, or (at your option) any later version.
+-- 
 
--- declare our protocol
+-- Declare Serval protocol
 serval_proto = Proto("serval","SERVAL")
+-- The fields table of this dissector
 local f = serval_proto.fields
+-- Define Serval IP Protocol number
+local IPPROTO_SERVAL = 144;
 
 -- Serval header
 -- struct serval_hdr {
@@ -34,6 +46,7 @@ local f = serval_proto.fields
 -- SERVAL_ASSERT(sizeof(struct serval_hdr) == 16)
 -- #define SAL_NONCE_SIZE 8
 
+-- Add fields to Serval table
 f.flags = ProtoField.uint8("serval.flags", "Flags", base.HEX)
 f.protocol = ProtoField.uint8("serval.dst_flowid", "Transfer Protocol", base.HEX)
 f.check = ProtoField.uint16("serval.check", "Check", base.HEX)
@@ -43,23 +56,35 @@ f.src_flowid = ProtoField.uint32("serval.src_flowid", "Source FlowID", base.HEX)
 f.dst_flowid = ProtoField.uint32("serval.dst_flowid", "Destination FlowID", base.HEX)
 
 
--- create a function to dissect it
+-- Create a function to dissect it
 function serval_proto.dissector(buffer,pinfo,tree)
+    -- Dissect the header bits (Serval service access data)
     local subtree_access = tree:add(serval_proto,buffer(0,12),"Serval Service Access Data")
     	subtree_access:add(f.src_flowid,buffer(0,4))
     	subtree_access:add(f.dst_flowid,buffer(4,4))
     	subtree_access:add(f.protocol,buffer(9,1))
     	subtree_flags = subtree_access:add(buffer(10,1),"Flags")
     		subtree_flags:add(f.flags,buffer(10,1))
+
+    -- If there are extension data, dissect them as well
     local subtree_extension = tree:add(serval_proto,buffer(12,16),"Serval Access Extension Data")
-    local subtree_payload = tree:add(serval_proto, buffer(32, buffer:len() - 32), "Payload: " .. buffer:len() - 32 .. " bytes")
-    local payload = (buffer(32, buffer:len() - 32)):string()
+    local payload_length = buffer:len() - 32
+    local payload_buffer = buffer(32, buffer:len() - 32)
+    local payload = (payload_buffer):string()
+
+    -- Finally print the payload
+    local subtree_payload = tree:add(serval_proto, payload_buffer, "Payload: " .. payload_length .. " bytes")
+            subtree_payload:add(payload)
+    
+    -- Change the content of columns, add Protocol name and payload (up to 80 chars and trimmed newlines)
+    pinfo.cols.protocol = "Serval"
     pinfo.cols.info = string.gsub(payload:sub(1, 80), "\n", "")
 end
--- string.format("%X", 
+
 function serval_proto.init()
- 	-- load the ip.proto table
- 	ip_proto_table = DissectorTable.get("ip.proto")
-	-- register our protocol to handle ip protocol 144
- 	ip_proto_table:add(144,serval_proto)
 end
+
+-- Load the ip.proto table
+local ip_proto_table = DissectorTable.get("ip.proto")
+-- Register our protocol to handle IPPROTO_SERVAL
+ip_proto_table:add(IPPROTO_SERVAL,serval_proto)
