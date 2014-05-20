@@ -26,20 +26,26 @@
 % TODO Add CUT template titlepage
 
 %Insert titlepage
+\pagenumbering{roman}
+\pdfbookmark[0]{Title}{title}
 \input{./title.tex}
+\phantomsection
+\pdfbookmark[0]{Copyright}{cc}
 \input{./copyright.tex}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
-{\Large \bf \noindent Acknowledgments}
-\\Here go the acknowledgments
+\pdfbookmark[0]{Acknowledgements}{acks}
+{\Large \bf \noindent Acknowledgements}
+\\Here go the acknowledgements
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
+\pdfbookmark[0]{ABSTRACT}{abstract}
 {\Large \bf \noindent Abstract} \\[0.13cm]
 
 \noindent The concept of the Internet has radically changed since its first onset, around half a century ago; millions of multi-homed users, often moving across networks, are asking for data and services offered by multiple servers, which can be replicated and situated in various geographical locations.
@@ -47,7 +53,7 @@ Yet only a few modifications managed to consolidate and provide the framework fo
 
 This situation is leading to erratic band-aids where network administrators and developers overload the existing network abstractions or resort to middleware, in order to provide the supplementary functionality needed by a network where services and data become first-class citizens.
 
-In this thesis we are introducing the approach of Service-Aware Networking, a consolidation of Service-Centric abstractions and the Software Defined Networking (SDN) paradigm.
+In this thesis we are introducing the approach of Service-Aware Networking, a consolidation of Service-Centric abstractions and the Software Defined Networking (SDN)\nomenclature{SDN}{Software Defined Networking} paradigm.
 
 Starting with an explanation of the principles behind Service-Centric networking, we are focusing on the Serval architecture along with its functional prototype.
 Results of benchmarks are presented juxtaposed to the measurements of the unmodified TCP/IP stack.
@@ -61,19 +67,23 @@ Finally we are suggesting that Software Defined Networking could benefit from Se
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
+\pdfbookmark[0]{Table of Contents}{toc}
 \tableofcontents
 %\listoffigures
 %\listoftables
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 %This is the first page with a number
 \pagestyle{plain}
+\pagenumbering{arabic}
 \setcounter{page}{1}
 
 \renewcommand{\nomname}{Abbreviations}
-\addcontentsline{toc}{section}{Abbreviations}
+\phantomsection
+\addcontentsline{toc}{part}{Abbreviations}
 \printnomenclature
 
 
@@ -87,8 +97,9 @@ Submitted to the Department of Electrical Engineering, Computer Engineering and 
 
 \vfill
 
+\phantomsection
+\addcontentsline{toc}{part}{Introduction}
 {\Large \bf \noindent Introduction} \\[0.5cm]
-\addcontentsline{toc}{section}{Introduction}
 The aim of this report is to give a thorough depiction of the current progress in the preparation of ServalDHT, a decentralized system for resolving serviceIDs in the Serval Architecture \cite{Nordstrom2012}.
 ServalDHT utilizes Distributed Hash Tables \nomenclature{DHT}{Distributed Hash Table} as a peer-powered DNS \nomenclature{DNS}{Domain Name System}  alternative in order to enable users locate service providers using a human readable service name.
 Because of its nature, ServalDHT faces issues of security, agility and robustness in real-world scenarios, and experiments should demonstrate that it confronts them with great success before it can be widely adopted.\\
@@ -105,8 +116,9 @@ Then, in the following two sections, it is outlined the theoretical background a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
+\phantomsection
+\addcontentsline{toc}{part}{Problem Definition}
 {\Huge \bf \noindent PROBLEM DEFINITION}
-\addcontentsline{toc}{section}{PROBLEM DEFINITION}
 \newpage
 
 
@@ -184,15 +196,16 @@ Split those two
 New solutions copy the current stack so changes should be made as soon as possible
 \\Necessary benefits for users (multiplicity and dynamism) and for developers (easy, time and money saving, walk through)
 \\Administrators must have a better control over the network
-\\Freedom in Internet, especially after social phenomenon (news write much about it, after SOPA PIPA etc)
-\\Autonomous networks need this for service resolution
+\\Need for experimentation
+\\Datacenter example
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
+\phantomsection
+\addcontentsline{toc}{part}{Service-Centric Networking}
 {\Huge \bf \noindent SERVICE-CENTRIC\\[0.2cm] NETWORKING}
-\addcontentsline{toc}{section}{SERVIC-SENTRIC NETWORKING}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -203,7 +216,13 @@ New solutions copy the current stack so changes should be made as soon as possib
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\section{Review of Relative Bibliography}
+\thispagestyle{empty}
+\phantomsection
+\addcontentsline{toc}{part}{Relative Bibliography}
+{\Huge \bf \noindent RELATIVE BIBLIOGRAPHY}
+\newpage
+
+\section{Review of relative bibliography}
 ServalDHT is a multifaceted architecture that combines ideas from a wide spectrum of topics, including but no limited to Large Scale Network Architectures, Network Protocol Layers, Service-Centric Networking, Software Defined Networking, Distributed Hash Table algorithms and security issues of their various implementations, Peer-To-Peer Lookup Services as a replacement to legacy DNS etc.
 Therefore references should contain an adequate number of publications on all those themes.\\
 \indent The publications that have been used so far as a source of information follow in section 7.
@@ -218,8 +237,15 @@ Brief summaries can be found in Appendix at the end of the report.
 \subsubsection{HAIR}
 \subsubsection{i3}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
+\thispagestyle{empty}
+\phantomsection
+\addcontentsline{toc}{part}{Rethinking Networking}
+{\Huge \bf \noindent RETHINKING NETWORKING}
+\newpage
+
 \section{Rethinking the Internet experience}
 %I HAVE A DREAM
 Cloud computing
@@ -235,13 +261,33 @@ Cloud computing
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\section{Service-centric architectures and Software Defined Networking}
-service-level routing
+\section{Service-centric architectures and SDN}
+A well thought Service centric architecture provides two things
+the right abstractions for services (developers and users)
+a service-aware control plane
+
+So that control plane could be merged with software defined networking apis
+sdn apis that have control over the fabric of the network
+
+as a result: sal can manipulate the virtual network
+dynamic policy-driven networking
+split control (sal AND sdn controller decide)
+distributed management
+immediate effect
+larger scale service-level routing
+
+
+
+\subsection{Scenario: Service Registration as a Network Policy}
+Scenario:
 service registration as policy
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\section{ServalSDN and cloud networks}
+\section{Service-Aware Networking and Cloud Networks}
+How can we take advantage of the above mentioned results in cloud networks?
+why cloud fits the description
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -278,7 +324,9 @@ User Serval as it is, but with a Distributed Service Resolution Service
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\section{Bibliography}
+\phantomsection
+\addcontentsline{toc}{part}{Bibliography}
+{\Huge \bf \noindent Bibliography}
 \nocite{*}
 \bibliographystyle{plain}
 \renewcommand{\refname}{}
@@ -287,27 +335,31 @@ User Serval as it is, but with a Distributed Service Resolution Service
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\thispagestyle{empty}
+\pagestyle{empty}
 {\Huge \bf \noindent APPENDIX}
-\addcontentsline{toc}{section}{APPENDIX}
+\phantomsection
+\addcontentsline{toc}{part}{APPENDIX}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\thispagestyle{empty}
 {\Huge \bf \noindent A. PRESENTATIONS}
-\addcontentsline{toc}{subsection}{A. PRESENTATIONS}
+\phantomsection
+\addcontentsline{toc}{section}{A. Presentation}
 
-\addcontentsline{toc}{subsubsection}{A.1 Serval Architecture}
+\newpage
+\phantomsection
+{\huge \bf \noindent A.1 ServalDHT - Secure DHT\\[0.2cm] based Service Resolution Service}
 \label{sec:servaldhtpres}
+\addcontentsline{toc}{subsubsection}{A.1 ServalDHT - Secure DHT based Service Resolution Service}
 \includepdf[pages={-}]{ServalDHT-Pres2.pdf}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\thispagestyle{empty}
 {\Huge \bf \noindent B. SOURCE CODE}
-\addcontentsline{toc}{subsection}{B. SOURCE CODE}
+\phantomsection
+\addcontentsline{toc}{section}{B. Source Code}
 \label{sec:sourcecode}
 
 

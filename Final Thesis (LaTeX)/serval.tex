@@ -1,8 +1,9 @@
 \subsection{Introduction}
 Serval\footnote{More information about the Serval Architecture can be found in the presentation in the Appendix (\ref{sec:servaldhtpres}).} is an end-host stack and a service-centric network architecture, proposed and prototyped by the \href{https://sns.cs.princeton.edu/}{systems and networking group} at \href{https://www.princeton.edu}{Princeton University}, in 2012.
 
-\paragraph{} In the original paper "A Service Access Layer, at Your Service" (2011)\cite{Freedman2011} and later on "Serval: An End-Host Stack for Service-Centric Networking" (2012)\cite{Nordstrom2012}, Nordstr{\"o}m et. al. first decompose the needs of modern networked applications, locate the discordances with the current Network Stack, study previous work and how each of them individually fails to stand as a proper solution, reconsider the current TCP/IP Networking Stack and propose two simple abstractions that can obliterate the legacy problems discussed on Problem Definition\ref{problemdefinition}.\\
-\indent Furthermore they introduce a formally-verified end-to-end connection control protocol (ECCP) 
+\paragraph{} In the original paper "A Service Access Layer, at Your Service" (2011)\cite{Freedman2011} and later on "Serval: An End-Host Stack for Service-Centric Networking" (2012)\cite{Nordstrom2012}, Nordstr{\"o}m et. al. first decompose the needs of modern networked applications, locate the discordances with the current Network Stack, study previous work and how each of them individually fails to stand as a proper solution, reconsider the current TCP/IP Networking Stack and propose two simple abstractions that can obliterate the legacy problems discussed on Problem Definition\ref{problemdefinition}.
+\indent Furthermore they investigate how those abstractions fit in a new 3.5 layer, the Service Access Layer (SAL)\nomenclature{SAL}{Service Access Layer}, and emphasize on the (SAL).\\
+\indent Furthermore they review a service-level control plane, which shifts services to first-class citizens. which a formally-verified end-to-end connection control protocol (ECCP)
 
 \subsection{Serval Architecture in a few words}
 
