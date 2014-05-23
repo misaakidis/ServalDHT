@@ -9,6 +9,14 @@
 -- the License, or (at your option) any later version.
 -- 
 
+require("bit")
+
+local SAL_PAD_EXT = 0x00
+local SAL_CONTROL_EXT = 0x01
+local SAL_SERVICE_EXT = 0x02
+local SAL_ADDRESS_EXT = 0x03
+local SAL_SOURCE_EXT = 0x04
+
 -- Declare Serval protocol
 serval_proto = Proto("serval","SERVAL")
 -- The fields table of this dissector
@@ -16,65 +24,83 @@ local f = serval_proto.fields
 -- Define Serval IP Protocol number
 local IPPROTO_SERVAL = 144;
 
--- Serval header
--- struct serval_hdr {
--- #if defined(__LITTLE_ENDIAN_BITFIELD)
--- 	uint8_t	res1:3,
---                 rsyn:1,
---                 fin:1,
---                 rst:1,
---                 ack:1,
--- 		syn:1;
--- #elif defined (__BIG_ENDIAN_BITFIELD)
--- 	uint8_t	syn:1,
---   		ack:1,
---                 rst:1,
---                 fin:1,
---                 rsyn:1,
---                 res1:3;
--- #else
--- #error	"Please fix <asm/byteorder.h>"
--- #endif
---         uint8_t  protocol;
---         uint16_t check;
---         uint16_t length;  
---         uint16_t res2;       
---         struct flow_id src_flowid;
---         struct flow_id dst_flowid;
--- } __attribute__((packed));
---
--- SERVAL_ASSERT(sizeof(struct serval_hdr) == 16)
--- #define SAL_NONCE_SIZE 8
-
 -- Add fields to Serval table
-f.flags = ProtoField.uint8("serval.flags", "Flags", base.HEX)
-f.protocol = ProtoField.uint8("serval.dst_flowid", "Transfer Protocol", base.HEX)
-f.check = ProtoField.uint16("serval.check", "Check", base.HEX)
-f.length = ProtoField.uint16("serval.length" ,"Length", base.HEX)
-f.res2 = ProtoField.uint16("serval.res2", "res2", base.HEX)
 f.src_flowid = ProtoField.uint32("serval.src_flowid", "Source FlowID", base.HEX)
 f.dst_flowid = ProtoField.uint32("serval.dst_flowid", "Destination FlowID", base.HEX)
+f.shl = ProtoField.uint8("serval.shl" ,"SAL Header Length (in 32bit words)", base.DEC)
+f.protocol = ProtoField.uint8("serval.dst_flowid", "Transfer Protocol", base.HEX)
+f.check = ProtoField.uint16("serval.check", "Check", base.HEX)
+f.sal_ext = ProtoField.bytes("serval.ext", "Extension", base.HEX)
+f.sal_ext_typeres = ProtoField.uint8("serval.ext_typeres", "Extension TypeRes", base.HEX)
+f.sal_ext_length = ProtoField.uint8("serval.ext_length", "Extension Length", base.HEX)
+f.sal_ext_data = ProtoField.bytes("serval.ext_data", "Extension Data", base.HEX)
 
+
+local SAL_HDR_LEN = 12
+local SAL_EXT_LEN = 2
+local MAX_NUM_SAL_EXTENSIONS = 10
 
 -- Create a function to dissect it
 function serval_proto.dissector(buffer,pinfo,tree)
-    -- Dissect the header bits (Serval service access data)
-    local subtree_access = tree:add(serval_proto,buffer(0,12),"Serval Service Access Data")
+    -- Dissect the SAL header bits (Serval Access Layer header)
+    local subtree_access = tree:add(serval_proto,buffer(0,SAL_HDR_LEN),"Serval SAL Header")
     	subtree_access:add(f.src_flowid,buffer(0,4))
     	subtree_access:add(f.dst_flowid,buffer(4,4))
-    	subtree_access:add(f.protocol,buffer(9,1))
-    	subtree_flags = subtree_access:add(buffer(10,1),"Flags")
-    		subtree_flags:add(f.flags,buffer(10,1))
+        
+        subtree_access:add(f.shl,buffer(8,1))
+        local ext_hdr_len = buffer(8,1):uint()*4 - SAL_HDR_LEN
+    	
+        subtree_access:add(f.protocol,buffer(9,1))
+        subtree_access:add(f.check,buffer(10,2))
 
     -- If there are extension data, dissect them as well
-    local subtree_extension = tree:add(serval_proto,buffer(12,16),"Serval Access Extension Data")
-    local payload_length = buffer:len() - 32
-    local payload_buffer = buffer(32, buffer:len() - 32)
-    local payload = (payload_buffer):string()
+    local i = 0
+    local ext_hdr_consumed = 0
+
+    local subtree_extension = tree:add(serval_proto,buffer(SAL_HDR_LEN,ext_hdr_len),"Serval Extension Headers (" .. ext_hdr_len .. " bytes)")
+    while (ext_hdr_len > ext_hdr_consumed and i < MAX_NUM_SAL_EXTENSIONS) do
+        
+        local ext_type = buffer(ext_hdr_consumed,1):bitfield(0,4)
+        local ext_length = buffer(ext_hdr_consumed+1,1):uint()
+        
+        local type_msg
+        if ext_type == SAL_PAD_EXT then
+            type_msg = "PAD"
+        elseif ext_type == SAL_CONTROL_EXT then
+            type_msg = "CONTROL"
+        elseif ext_type == SAL_SERVICE_EXT then
+            type_msg = "SERVICE"
+        elseif ext_type == SAL_ADDRESS_EXT then
+            type_msg = "ADDRESS"
+        elseif ext_type == SAL_SOURCE_EXT then
+            type_msg = "SOURCE"
+        else
+            type_msg = "???"
+        end
+
+        if ext_type == SAL_PAD_EXT then 
+            ext_length = 1
+        end
+
+        local sub_ext_tree = subtree_extension:add(serval_proto,buffer(ext_hdr_consumed,ext_length+2),"Serval Extension: " .. type_msg .. " (" .. ext_hdr_consumed .. "," .. ext_hdr_consumed+ext_length+1 .. ")")
+            sub_ext_tree:add(f.sal_ext_typeres, buffer(ext_hdr_consumed,1))
+            sub_ext_tree:add(f.sal_ext_length, buffer(ext_hdr_consumed+1,1))
+            -- subtree_extension:add(f.sal_ext_data, buffer(2,ext_length))
+
+        i = i + 1
+        ext_hdr_consumed = ext_hdr_consumed + ext_length + 2
+
+    end
+
+    -- Find Serval Access Extension Data length
+    --
 
     -- Finally print the payload
+    local payload_length = buffer:len() - SAL_HDR_LEN - ext_hdr_len
+    local payload_buffer = buffer(SAL_HDR_LEN+ext_hdr_len, payload_length)
+    local payload = payload_buffer:string()
     local subtree_payload = tree:add(serval_proto, payload_buffer, "Payload: " .. payload_length .. " bytes")
-            subtree_payload:add(payload)
+        subtree_payload:add(payload)
     
     -- Change the content of columns, add Protocol name and payload (up to 80 chars and trimmed newlines)
     pinfo.cols.protocol = "Serval"

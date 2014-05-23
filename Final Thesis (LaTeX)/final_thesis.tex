@@ -29,8 +29,6 @@
 \pagenumbering{roman}
 \pdfbookmark[0]{Title}{title}
 \input{./title.tex}
-\phantomsection
-\pdfbookmark[0]{Copyright}{cc}
 \input{./copyright.tex}
 
 
@@ -45,7 +43,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
-\pdfbookmark[0]{ABSTRACT}{abstract}
+\pdfbookmark[0]{Abstract}{abstract}
 {\Large \bf \noindent Abstract} \\[0.13cm]
 
 \noindent The concept of the Internet has radically changed since its first onset, around half a century ago; millions of multi-homed users, often moving across networks, are asking for data and services offered by multiple servers, which can be replicated and situated in various geographical locations.
@@ -58,7 +56,7 @@ In this thesis we are introducing the approach of Service-Aware Networking, a co
 Starting with an explanation of the principles behind Service-Centric networking, we are focusing on the Serval architecture along with its functional prototype.
 Results of benchmarks are presented juxtaposed to the measurements of the unmodified TCP/IP stack.
 
-Finally we are suggesting that Software Defined Networking could benefit from Serval's service-level data plane and enable services running in – possibly distributed – datacenters to automatically, and according to the rights they have been granted, manipulate virtual networks to better utilize the underlying network infrastructure, conforming to their dynamic needs.\\[0.1cm]
+Finally we are suggesting that Software Defined Networking could benefit from Serval's service-level data/control plane separation and enable services running in – possibly distributed – datacenters to automatically, and according to the rights they have been granted, manipulate virtual networks to better utilize the underlying network infrastructure, conforming to their dynamic needs.\\[0.1cm]
 
 \noindent The project is Open Source and can be found at\\ 
 \noindent \href{https://github.com/misaakidis/ServalDHT}{https://github.com/misaakidis/ServalDHT}
@@ -76,10 +74,7 @@ Finally we are suggesting that Software Defined Networking could benefit from Se
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-%This is the first page with a number
 \pagestyle{plain}
-\pagenumbering{arabic}
-\setcounter{page}{1}
 
 \renewcommand{\nomname}{Abbreviations}
 \phantomsection
@@ -89,7 +84,11 @@ Finally we are suggesting that Software Defined Networking could benefit from Se
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
 \begin{center}
+\phantomsection
+\addcontentsline{toc}{part}{Introduction}
 {\large {\bf  Service-Aware Networking: Service-Centric Architectures and the SDN Paradigm}\\[0.5cm] by \\[0.5cm] Isaakidis Marios - 2009437805}
  ~\\[0.5cm]
 Submitted to the Department of Electrical Engineering, Computer Engineering and Informatics on June 2014, in partial fulfillment of the requirements for the degree of Electrical Engineering, Computer Engineering and Informatics
@@ -97,8 +96,6 @@ Submitted to the Department of Electrical Engineering, Computer Engineering and 
 
 \vfill
 
-\phantomsection
-\addcontentsline{toc}{part}{Introduction}
 {\Large \bf \noindent Introduction} \\[0.5cm]
 The aim of this report is to give a thorough depiction of the current progress in the preparation of ServalDHT, a decentralized system for resolving serviceIDs in the Serval Architecture \cite{Nordstrom2012}.
 ServalDHT utilizes Distributed Hash Tables \nomenclature{DHT}{Distributed Hash Table} as a peer-powered DNS \nomenclature{DNS}{Domain Name System}  alternative in order to enable users locate service providers using a human readable service name.
@@ -113,6 +110,8 @@ Then, in the following two sections, it is outlined the theoretical background a
 \noindent Thesis Supervisor: Dr. Sirivianos Michael\\
 \noindent Title: Lecturer at CUT's EEIT Department}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
@@ -201,6 +200,7 @@ New solutions copy the current stack so changes should be made as soon as possib
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
 \phantomsection
@@ -210,10 +210,24 @@ New solutions copy the current stack so changes should be made as soon as possib
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
+\section{Networked world}
+We have far passed the individuality of monads. \emph{We achieve more in groups than we can ever achieve by ourselves. And co-operative interactions are the hallmark of all major evolutionary leap} \cite{Christakis2011}. We rely on our relationships in like manner we slot ourselves within a community. We have communication protocols. We go after passing on our message. We understand that through communicating (from Latin \emph{comm\={u}nic\={a}re}, meaning "to share") with the right intermediaries we finally reach the group of those who can offer the services we want.\\
+\indent This is no different from how a machine network is structured. Machines 
+
+\subsection{Modern consumer networks}
+\subsection{Metropolitan and P2P networks}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Service-Centric Networking Principles}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
 \section{The Serval Networking Architecture}
 \input{./serval.tex}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
@@ -229,7 +243,7 @@ Therefore references should contain an adequate number of publications on all th
 Brief summaries can be found in Appendix at the end of the report.
 
 
-\subsection{Decoupling a Host Identity from its location}
+\subsection{Transport Layer - Decoupling a Host Identity from its location}
 \subsubsection{HIP}
 \subsubsection{DOA}
 \subsubsection{LISP}
@@ -237,13 +251,16 @@ Brief summaries can be found in Appendix at the end of the report.
 \subsubsection{HAIR}
 \subsubsection{i3}
 
+\subsection{Application Layer - }
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \thispagestyle{empty}
 \phantomsection
-\addcontentsline{toc}{part}{Rethinking Networking}
-{\Huge \bf \noindent RETHINKING NETWORKING}
+\addcontentsline{toc}{part}{Service-Aware Networking}
+{\Huge \bf \noindent SERVICE-AWARE\\[0.2cm] NETWORKING}
 \newpage
 
 \section{Rethinking the Internet experience}
@@ -275,8 +292,6 @@ split control (sal AND sdn controller decide)
 distributed management
 immediate effect
 larger scale service-level routing
-
-
 
 \subsection{Scenario: Service Registration as a Network Policy}
 Scenario:
@@ -323,10 +338,12 @@ User Serval as it is, but with a Distributed Service Resolution Service
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \phantomsection
 \addcontentsline{toc}{part}{Bibliography}
 {\Huge \bf \noindent Bibliography}
+[TODO] - ksedialegma
 \nocite{*}
 \bibliographystyle{plain}
 \renewcommand{\refname}{}
@@ -334,13 +351,15 @@ User Serval as it is, but with a Distributed Service Resolution Service
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \pagestyle{empty}
 {\Huge \bf \noindent APPENDIX}
 \phantomsection
-\addcontentsline{toc}{part}{APPENDIX}
+\addcontentsline{toc}{part}{Appendix}
 \newpage
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 {\Huge \bf \noindent A. PRESENTATIONS}
@@ -355,6 +374,7 @@ User Serval as it is, but with a Distributed Service Resolution Service
 \includepdf[pages={-}]{ServalDHT-Pres2.pdf}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 {\Huge \bf \noindent B. SOURCE CODE}
