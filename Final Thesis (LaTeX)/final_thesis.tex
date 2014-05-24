@@ -1,6 +1,10 @@
 %This work is licensed by the author, Isaakidis Marios, under the Creative Commons Attribution 3.0 Unported License, in memory of Aaron Swartz. To view a copy of this license, visit http://creativecommons.org/licenses/by/3.0/ or send a letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
 
+% Export a final_theis.pdf:
+% make clean ; `bibtex final_thesis.aux ; makeindex final_thesis.nlo -s nomencl.ist -o final_thesis.nls ; xelatex -synctex=1 -interaction=nonstopmode final_thesis.tex ; xelatex -synctex=1 -interaction=nonstopmode final_thesis.tex` > /dev/null ; if [[ -f final_thesis.pdf ]]; then echo final_thesis.pdf exported ; else echo PDF not exported ; fi
+
 \documentclass[12pt,a4paper,oneside]{article}
+\usepackage[usenames,dvipsnames]{color}
 \usepackage{graphicx}
 \usepackage{tikz}
 \usepackage{hyperref}
@@ -9,15 +13,66 @@
 \usepackage{listings}
 
 \lstdefinelanguage{diff}{
-  morecomment=[f][\color{blue}]{@@},     % group identifier
-  morecomment=[f][\color{red}]-,         % deleted lines 
-  morecomment=[f][\color{green}]+,       % added lines
-  morecomment=[f][\color{magenta}]{---}, % Diff header lines (must appear after +,-)
-  morecomment=[f][\color{magenta}]{+++},
-  breaklines=true,breakindent=0pt,breakatwhitespace=true,
+  morecomment=[f][\color{Blue}]{@@},     % group identifier
+  morecomment=[f][\color{Red}]-,         % deleted lines 
+  morecomment=[f][\color{Green}]+,       % added lines
+  morecomment=[f][\color{Magenta}]{---}, % Diff header lines (must appear after +,-)
+  morecomment=[f][\color{Magenta}]{+++},
+  breaklines=true,breakindent=0pt,breakatwhitespace=false,
   postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{black}\hookrightarrow\space}},
   basicstyle=\ttfamily\small
 }
+
+\lstdefinelanguage{lua}
+% Written by Roland Smith <rsmith@xs4all.nl> and hereby placed in the public domain. 
+  {morekeywords={and,break,do,else,elseif,end,false,for,function,if,in,local,
+     nil,not,or,repeat,return,then,true,until,while},
+   morekeywords={[2]arg,assert,collectgarbage,dofile,error,_G,getfenv,
+     getmetatable,ipairs,load,loadfile,loadstring,next,pairs,pcall,print,
+     rawequal,rawget,rawset,select,setfenv,setmetatable,tonumber,tostring,
+     type,unpack,_VERSION,xpcall},
+   morekeywords={[2]coroutine.create,coroutine.resume,coroutine.running,
+     coroutine.status,coroutine.wrap,coroutine.yield},
+   morekeywords={[2]module,require,package.cpath,package.load,package.loaded,
+     package.loaders,package.loadlib,package.path,package.preload,
+     package.seeall},
+   morekeywords={[2]string.byte,string.char,string.dump,string.find,
+     string.format,string.gmatch,string.gsub,string.len,string.lower,
+     string.match,string.rep,string.reverse,string.sub,string.upper},
+   morekeywords={[2]table.concat,table.insert,table.maxn,table.remove,
+   table.sort},
+   morekeywords={[2]math.abs,math.acos,math.asin,math.atan,math.atan2,
+     math.ceil,math.cos,math.cosh,math.deg,math.exp,math.floor,math.fmod,
+     math.frexp,math.huge,math.ldexp,math.log,math.log10,math.max,math.min,
+     math.modf,math.pi,math.pow,math.rad,math.random,math.randomseed,math.sin,
+     math.sinh,math.sqrt,math.tan,math.tanh},
+   morekeywords={[2]io.close,io.flush,io.input,io.lines,io.open,io.output,
+     io.popen,io.read,io.tmpfile,io.type,io.write,file:close,file:flush,
+     file:lines,file:read,file:seek,file:setvbuf,file:write},
+   morekeywords={[2]os.clock,os.date,os.difftime,os.execute,os.exit,os.getenv,
+     os.remove,os.rename,os.setlocale,os.time,os.tmpname},
+   sensitive=true,
+   morecomment=[l][\color{Magenta}]{--},
+   morecomment=[s][\color{Magenta}]{--[[}{]]},
+   morestring=[b][\color{Blue}]",
+   morestring=[d][\color{Blue}]',
+   breaklines=true,breakindent=0pt,breakatwhitespace=false,
+   postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{black}\hookrightarrow\space}},
+   basicstyle=\ttfamily\small
+}
+
+\lstdefinestyle{BashColor}
+{language=bash,
+  keywordstyle=\color{Blue},
+  basicstyle=\ttfamily\small,
+  keywordstyle=[2]{\color{Red}},
+  literate={\$}{{\textcolor{Red}{\$}}}1 
+         {:}{{\textcolor{Red}{:}}}1
+         {~}{{\textcolor{Red}{\textasciitilde}}}1,
+  breaklines=true,breakindent=0pt,breakatwhitespace=true,
+  postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{black}\hookrightarrow\space}},
+}
+
 
 \makenomenclature
 
@@ -64,12 +119,23 @@ Finally we are suggesting that Software Defined Networking could benefit from Se
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\thispagestyle{empty}
-\pdfbookmark[0]{Table of Contents}{toc}
+\pdfbookmark[0]{Tables and Lists}{tal}
+\pdfbookmark[1]{Table of Contents}{toc}
 \tableofcontents
-%\listoffigures
-%\listoftables
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\phantomsection
+\addcontentsline{toc}{section}{List of Figures}
+\listoffigures
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\phantomsection
+\addcontentsline{toc}{section}{List of Tables}
+\listoftables
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,7 +144,7 @@ Finally we are suggesting that Software Defined Networking could benefit from Se
 
 \renewcommand{\nomname}{Abbreviations}
 \phantomsection
-\addcontentsline{toc}{part}{Abbreviations}
+\addcontentsline{toc}{section}{Abbreviations}
 \printnomenclature
 
 
@@ -237,6 +303,7 @@ We have far passed the individuality of monads. \emph{We achieve more in groups 
 \newpage
 
 \section{Review of relative bibliography}
+\label{sec:reviewbibliography}
 ServalDHT is a multifaceted architecture that combines ideas from a wide spectrum of topics, including but no limited to Large Scale Network Architectures, Network Protocol Layers, Service-Centric Networking, Software Defined Networking, Distributed Hash Table algorithms and security issues of their various implementations, Peer-To-Peer Lookup Services as a replacement to legacy DNS etc.
 Therefore references should contain an adequate number of publications on all those themes.\\
 \indent The publications that have been used so far as a source of information follow in section 7.
@@ -334,7 +401,28 @@ User Serval as it is, but with a Distributed Service Resolution Service
 \\2. Implement ServalDHT SRS
 \\3. Results of deployment in PlanetLab
 \\4. Start preparing an RFC?
-\\See how DHTs can replace hierarchical DNS?
+
+\subsection{ServalDHT: Secure-DHT based Service Resolution Service for Serval}
+\subsubsection{The challenges of private, hierarchical DNS}
+Over time, the Internet has gathered a great power over diverse societies.
+People all around the world are trusting in order to read about the news, form a political opinion, solve problems in their working environment, do market research.
+However, while the Internet continuously affirms its prominent value, it is a surprise how vulnerable it remains to arbitrary (inter)national control and malicious attacks, due to the fact that it is erringly administered by private organizations and its restrained, hierarchical structure. \\
+\indent One of the fundamental components of the the functionality of the Internet is the Domain Name System (DNS).
+It is used to map human readable names of hosts to numerical IP addresses needed for the purpose of locating service providers around the world and effectively routing traffic to them.
+Those identifiers, called domain names, are annually purchased and assigned through the Internet Registry by the private organization ICANN (Internet Corporation for Assigned Names and Numbers).
+In addition to being peremptory, this domination also grants to ICANN the privilege of overseeing the content of Internet, by cutting out or declining registration to "undesirable" domains.
+Nevertheless, various incidents of catachresis are being observed the last years, with governments like the Egyptian one that shut down its DNS servers to muzzle the protesters in 2011, and the Chinese which still blacklists certain domains as a mechanism for Internet censorship.\\
+\indent Moreover, the current Domain Name Service is based on an hierarchical architecture, where (domain name, IP) tuples are cached in midway servers.
+This is causing great problems when a service provider has to renew its IP address, because even if a DNS root server is updated, users still get the old cached IP address yet after hours.
+This time delay can increase to days in cases where recursive DNS servers do not follow the specified TTL values for their cached entries.
+Consequently, hosts are restrained from taking advantage of functionality like multihoming and (virtual machine) migration.
+For the same reason, in cases of machine failure, the failover will take a long time, returning in the meanwhile a server unreachable response. \\
+\indent Besides, inevitably imitating the hierarchical architecture for domain resolution, autonomous networks must have exclusive, trusted machines offering an analogous service all the time.
+This is not always desired, for example in Metropolitan Area Networks (MAN) \nomenclature{MAN}{Metropolitan Area Networks} where ranking does not make sense.\\
+\indent Other problems related to DNS bear upon the lack of a widely adopted protocol to correctly verify the real identity of service hosts.
+DNS has been proved fallible to various attacks, like (Distributed) Denial of Service attacks (known as DDoS \nomenclature{DDoS}{Distributed Denial of Service} and DoS \nomenclature{DoS}{Denial of Service} attacks), Cache Poisoning (or DNS Spoofing) etc., which aim on deliberately redirecting requests to malevolent hosts.
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -354,41 +442,43 @@ User Serval as it is, but with a Distributed Service Resolution Service
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \pagestyle{empty}
-{\Huge \bf \noindent APPENDIX}
 \phantomsection
 \addcontentsline{toc}{part}{Appendix}
+{\Huge \bf \noindent APPENDIX}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-{\Huge \bf \noindent A. PRESENTATIONS}
 \phantomsection
 \addcontentsline{toc}{section}{A. Presentation}
+{\Huge \bf \noindent A. PRESENTATIONS}
+
 
 \newpage
 \phantomsection
-{\huge \bf \noindent A.1 ServalDHT - Secure DHT\\[0.2cm] based Service Resolution Service}
+\addcontentsline{toc}{subsection}{A.1 ServalDHT - Secure DHT based Service Resolution Service}
 \label{sec:servaldhtpres}
-\addcontentsline{toc}{subsubsection}{A.1 ServalDHT - Secure DHT based Service Resolution Service}
+{\huge \bf \noindent A.1 ServalDHT - Secure DHT\\[0.2cm] based Service Resolution Service}
 \includepdf[pages={-}]{ServalDHT-Pres2.pdf}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-{\Huge \bf \noindent B. SOURCE CODE}
 \phantomsection
 \addcontentsline{toc}{section}{B. Source Code}
 \label{sec:sourcecode}
+{\Huge \bf \noindent B. SOURCE CODE}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-{\huge \bf \noindent B.1 nginx serval port}
-\addcontentsline{toc}{subsubsection}{B.1 nginx serval port}\\[0.5cm]
+\phantomsection
+\addcontentsline{toc}{subsection}{B.1 nginx Serval port}
+{\huge \bf \noindent B.1 nginx Serval port}\\[0.5cm]
 \textbf{File:} ports/nginx/nginx-1.2.9-integrated-serval.patch\\
-\textbf{Description:} Patch nginx version 1.2.9 to use Serval active sockets. \\
+\textbf{Description:} Patch nginx version 1.2.9 to use Serval active sockets. Based on nginx\_1.2.9\_serval\_fqdn branch.\\
 \textbf{Instructions: }
 \begin{enumerate} \itemsep1pt \parskip0pt 
 \parsep0pt
@@ -403,6 +493,37 @@ User Serval as it is, but with a Distributed Service Resolution Service
 	\item nginx Service ID is 8\\[0.5cm]
 \end{enumerate}
 \lstinputlisting[language=diff]{source_code/nginx-1.2.9-integrated-serval.patch}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\phantomsection
+\addcontentsline{toc}{subsection}{B.2 Wireshark Lua Serval Dissector}
+{\huge \bf \noindent B.2 Wireshark Lua Serval Dissector}\\[0.5cm]
+\textbf{File:} serval/src/serval\_wireshark\_dissector.lua\\
+\textbf{Description:} Wireshark dissector for the Serval protocol (IPPROTO\_SERVAL 144).\\
+\textbf{Instructions: }
+\begin{enumerate} \itemsep1pt \parskip0pt 
+\parsep0pt
+	\item Make sure Lua is enabled in wireshark's global configuration (\href{http://wiki.wireshark.org/Lua}{Wireshark wiki})
+	\item Copy serval/src/serval\_wireshark\_dissector.lua into a plugin directory (default is $\sim$/.wireshark/plugin)\\[0.5cm]
+\end{enumerate}
+\lstinputlisting[language=lua]{source_code/serval_wireshark_dissector.lua}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\phantomsection
+\addcontentsline{toc}{subsection}{B.3 Initialize Serval test node Script}
+{\huge \bf \noindent B.3 Initialize Serval test node Script}\\[0.5cm]
+\textbf{File:} serval/src/init\_servtest.sh\\
+\textbf{Description:} Initialize a Serval testing node.\\
+\textbf{Instructions: }
+\begin{enumerate} \itemsep1pt \parskip0pt 
+\parsep0pt
+	\item You might want to set the executable bit as a superuser (chmod +x init\_servtest.sh)
+	\item Execute the script with superuser privileges
+	\item View the help with \texttt{-}h\\[0.5cm]
+\end{enumerate}
+\lstinputlisting[style=BashColor]{source_code/init_servtest.sh}
 
 
 

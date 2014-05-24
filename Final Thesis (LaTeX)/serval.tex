@@ -2,16 +2,51 @@
 Serval\footnote{More information about the Serval Architecture can be found in the presentation in the Appendix (\ref{sec:servaldhtpres}).} is an end-host stack evolving into a service-centric network architecture, proposed and prototyped by the \href{https://sns.cs.princeton.edu/}{systems and networking group} at \href{https://www.princeton.edu}{Princeton University}, in 2012.
 
 \paragraph{} In the original paper "A Service Access Layer, at Your Service" (2011)\cite{Freedman2011} and later on "Serval: An End-Host Stack for Service-Centric Networking" (2012)\cite{Nordstrom2012}, Freedman, Nordstr{\"o}m et. al. first decompose the needs of modern networked applications, locate the discordances with the current Network Stack, study previous work and how each of them individually fails to stand as a proper solution, rethink the current TCP/IP Networking Stack and propose two simple abstractions that can obliterate the legacy problems discussed on Problem Definition (\ref{problemdefinition}).\\
-\indent Furthermore they investigate how those abstractions fit in a new 3.5 layer, the Service Access Layer (SAL)\nomenclature{SAL}{Service Access Layer}, and emphasize on the clean service-level data/control plane separation it imposes. After all, they review a formally-verified end-to-end connection control protocol (ECCP) \nomenclature{ECCP}{End-to-End Connection Control Protocol} [TODO], which elevates services to first-class citizens. 
+\indent Furthermore they investigate how those abstractions fit in a new 3.5 layer, the Service Access Layer (SAL)\nomenclature{SAL}{Service Access Layer}, and emphasize on the clean service-level data/control plane separation it imposes. After all, they review a formally-verified end-to-end connection control protocol (ECCP) \nomenclature{ECCP}{End-to-End Connection Control Protocol} [TODO], which elevates services to first-class citizens.
 
 \subsection{Proposed abstractions}
-Deciding the right abstractions 
+As will be discussed later on at the section "Review of Relative Bibliography" (\ref{sec:reviewbibliography}), various abstractions have been proposed in order to support the concept of Service-Centric networking.
+Deciding the right abstractions premises first the detailed understanding of where a problem resides, and then the genuine intuition for conceiving the simple yet powerful generalizations that better conform with the current and future needs.
+Those abstractions should be transparent enough for legacy ports and hot swapping with the prevalent systems, in the meantime powerful to break ground for future advancements.\\
+\indent We appraise the Serval abstractions of \emph{Service Names} and \emph{Flow Identifiers} for being a great solution on the overloading of identifiers within and across the present TCP/IP stack.
+Also, for the tight fit of those abstractions in the separation of data and control plane.
+Finally, it is remarkable how the adoption of those abstractions requires minimal if no modifications at all in the infrastructure that powers networks today.
+
+\subsubsection{Service Names}
+The main idea behind Service-Centric Networking is that nowadays network users request services by their names and are completely agnostic of the underlying procedures.
+Hereby an abstraction is needed for identifying a service, resolving and of course effectively routing a request to an instance of that service, according to specific rules.
+For that reason Serval introduces service names, or \emph{serviceIDs}.\\
+\indent ServiceIDs are large (256 bit long) strings, that correspond to a service, or a group of services.
+Part of Serval packets as a service extension header in the synchronization process, serviceIDs assist in resolution and service-level routing.
+Furthermore they are used as persistent, global identifiers for easier handling on replicated services, virtual machine migrations or mobile hosts, when there is a need for end-point signaling.
+\indent What is unique about Serval's abstraction of service identifiers is that since they are managed by the SAL, they are positioned below the transport layer.
+Jointly with Serval active sockets, 
+
+\indent service granularity (block allocation) \\
+\indent In an elegant way serviceIDs promote services to the principal entities in the network, obscuring host identifiers (IP and Port) from the application layer, still offering powerful, familiar APIs\nomenclature{API}{Application Programming Interface} to networked application developers.
+
+\subsection{Service Resolution}
+\subsubsection{Hierarchical Resolution}  Relative to today's domain name system, those serviceIDs can be mapped to human-readable strings, much like URIs.
+
+
+\subsubsection{Flat Resolution Schemes} Another approach suggests that serviceIDs are calculated by a hash function on a service prefix and an application-level instance unique key.
+This practice of a \emph{semantic-free, flat} namespace better supports networks without a hierarchical structure, like datacenter and Wide Area networks.
+By semantic-free\cite{Walfisha2004} reference we mean that by default 
+
+
+
+\subsection{Service-Level Routing} 
+\subsubsection{Late binding}
+
+
+Those service names in a deeper level get mapped to 
+human readable strings similar to domain names, for identifying services.
+ regardless it's geographical position, the port it is bound, 
 
 
 \subsection{Serval Network Stack}
 \subsubsection{Service Controller}
 \subsubsection{Service Access Layer}
-\subsection{Service Resolution in the Serval architecture}
 
 \subsection{Application portability and incremental deployment}
 - A translator can be used but: (ADD SCHEMA)

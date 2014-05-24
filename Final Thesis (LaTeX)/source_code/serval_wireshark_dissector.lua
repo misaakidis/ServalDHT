@@ -36,16 +36,18 @@ local f = serval_proto.fields
 f.src_flowid = ProtoField.uint32("serval.src_flowid", "Source FlowID", base.HEX)
 f.dst_flowid = ProtoField.uint32("serval.dst_flowid", "Destination FlowID", base.HEX)
 f.shl = ProtoField.uint8("serval.shl" ,"SAL Header Length (in 32bit words)", base.DEC)
-f.protocol = ProtoField.uint8("serval.dst_flowid", "Transfer Protocol (TCP=6, UDP=17)", base.HEX)
+f.protocol = ProtoField.uint8("serval.protocol", "Transfer Protocol (TCP=6, UDP=17)", base.DEC)
 f.check = ProtoField.uint16("serval.check", "Check", base.HEX)
 f.sal_ext = ProtoField.bytes("serval.ext", "Extension", base.HEX)
 f.sal_ext_typeres = ProtoField.uint8("serval.ext_typeres", "Extension TypeRes", base.HEX)
-f.sal_ext_length = ProtoField.uint8("serval.ext_length", "Extension Length", base.HEX)
+f.sal_ext_length = ProtoField.uint8("serval.ext_length", "Extension Length", base.DEC)
 f.sal_ext_data = ProtoField.bytes("serval.ext_data", "Extension Data", base.HEX)
 
 
 -- Create a function to dissect Serval
 function serval_proto.dissector(buffer,pinfo,tree)
+    pinfo.cols.protocol = "Serval"
+
     -- Dissect the SAL header bits (Serval Access Layer header)
     local subtree_access = tree:add(serval_proto,buffer(0,SAL_HDR_LEN),"Serval SAL Header")
     	subtree_access:add(f.src_flowid,buffer(0,4))
@@ -109,18 +111,19 @@ function serval_proto.dissector(buffer,pinfo,tree)
     end
 
     -- Find Serval Access Extension Data length
-    --
 
     -- Finally print the payload
     local payload_length = buffer:len() - SAL_HDR_LEN - ext_hdr_len
-    local payload_buffer = buffer(SAL_HDR_LEN+ext_hdr_len, payload_length)
-    local payload = payload_buffer:string()
-    local subtree_payload = tree:add(serval_proto, payload_buffer, "Payload: " .. payload_length .. " bytes")
-        subtree_payload:add(payload)
-    
-    -- Change the content of columns, add Protocol name and payload (up to 80 chars and trimmed newlines)
-    pinfo.cols.protocol = "Serval"
-    pinfo.cols.info = string.gsub(payload:sub(1, 80), "\n", "")
+    if payload_length > 0 then
+        local payload_buffer = buffer(SAL_HDR_LEN+ext_hdr_len, payload_length)
+        local payload = payload_buffer:string()
+        local subtree_payload = tree:add(serval_proto, payload_buffer, "Payload: " .. payload_length .. " bytes")
+            subtree_payload:add(payload)
+
+        -- Change the content of column payload (up to 80 chars and trimmed newlines)
+        pinfo.cols.info = string.gsub(payload:sub(1, 80), "\n", "")
+    end
+
 end
 
 function serval_proto.init()
