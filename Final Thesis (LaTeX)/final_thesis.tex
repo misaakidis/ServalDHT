@@ -1,7 +1,7 @@
 %This work is licensed by the author, Isaakidis Marios, under the Creative Commons Attribution 3.0 Unported License, in memory of Aaron Swartz. To view a copy of this license, visit http://creativecommons.org/licenses/by/3.0/ or send a letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
 
 % Export a final_theis.pdf:
-% make clean ; `bibtex final_thesis.aux ; makeindex final_thesis.nlo -s nomencl.ist -o final_thesis.nls ; xelatex -synctex=1 -interaction=nonstopmode final_thesis.tex ; xelatex -synctex=1 -interaction=nonstopmode final_thesis.tex` > /dev/null ; if [[ -f final_thesis.pdf ]]; then echo final_thesis.pdf exported ; else echo PDF not exported ; fi
+% make clean ; make final_thesis.pdf
 
 \documentclass[12pt,a4paper,oneside]{article}
 \usepackage[usenames,dvipsnames]{color}
@@ -12,67 +12,7 @@
 \usepackage{pdfpages}
 \usepackage{listings}
 
-\lstdefinelanguage{diff}{
-  morecomment=[f][\color{Blue}]{@@},     % group identifier
-  morecomment=[f][\color{Red}]-,         % deleted lines 
-  morecomment=[f][\color{Green}]+,       % added lines
-  morecomment=[f][\color{Magenta}]{---}, % Diff header lines (must appear after +,-)
-  morecomment=[f][\color{Magenta}]{+++},
-  breaklines=true,breakindent=0pt,breakatwhitespace=false,
-  postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{black}\hookrightarrow\space}},
-  basicstyle=\ttfamily\small
-}
-
-\lstdefinelanguage{lua}
-% Written by Roland Smith <rsmith@xs4all.nl> and hereby placed in the public domain. 
-  {morekeywords={and,break,do,else,elseif,end,false,for,function,if,in,local,
-     nil,not,or,repeat,return,then,true,until,while},
-   morekeywords={[2]arg,assert,collectgarbage,dofile,error,_G,getfenv,
-     getmetatable,ipairs,load,loadfile,loadstring,next,pairs,pcall,print,
-     rawequal,rawget,rawset,select,setfenv,setmetatable,tonumber,tostring,
-     type,unpack,_VERSION,xpcall},
-   morekeywords={[2]coroutine.create,coroutine.resume,coroutine.running,
-     coroutine.status,coroutine.wrap,coroutine.yield},
-   morekeywords={[2]module,require,package.cpath,package.load,package.loaded,
-     package.loaders,package.loadlib,package.path,package.preload,
-     package.seeall},
-   morekeywords={[2]string.byte,string.char,string.dump,string.find,
-     string.format,string.gmatch,string.gsub,string.len,string.lower,
-     string.match,string.rep,string.reverse,string.sub,string.upper},
-   morekeywords={[2]table.concat,table.insert,table.maxn,table.remove,
-   table.sort},
-   morekeywords={[2]math.abs,math.acos,math.asin,math.atan,math.atan2,
-     math.ceil,math.cos,math.cosh,math.deg,math.exp,math.floor,math.fmod,
-     math.frexp,math.huge,math.ldexp,math.log,math.log10,math.max,math.min,
-     math.modf,math.pi,math.pow,math.rad,math.random,math.randomseed,math.sin,
-     math.sinh,math.sqrt,math.tan,math.tanh},
-   morekeywords={[2]io.close,io.flush,io.input,io.lines,io.open,io.output,
-     io.popen,io.read,io.tmpfile,io.type,io.write,file:close,file:flush,
-     file:lines,file:read,file:seek,file:setvbuf,file:write},
-   morekeywords={[2]os.clock,os.date,os.difftime,os.execute,os.exit,os.getenv,
-     os.remove,os.rename,os.setlocale,os.time,os.tmpname},
-   sensitive=true,
-   morecomment=[l][\color{Magenta}]{--},
-   morecomment=[s][\color{Magenta}]{--[[}{]]},
-   morestring=[b][\color{Blue}]",
-   morestring=[d][\color{Blue}]',
-   breaklines=true,breakindent=0pt,breakatwhitespace=false,
-   postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{black}\hookrightarrow\space}},
-   basicstyle=\ttfamily\small
-}
-
-\lstdefinestyle{BashColor}
-{language=bash,
-  keywordstyle=\color{Blue},
-  basicstyle=\ttfamily\small,
-  keywordstyle=[2]{\color{Red}},
-  literate={\$}{{\textcolor{Red}{\$}}}1 
-         {:}{{\textcolor{Red}{:}}}1
-         {~}{{\textcolor{Red}{\textasciitilde}}}1,
-  breaklines=true,breakindent=0pt,breakatwhitespace=true,
-  postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{black}\hookrightarrow\space}},
-}
-
+\input{custom_listings.tex}
 
 \makenomenclature
 
@@ -82,17 +22,29 @@
 
 %Insert titlepage
 \pagenumbering{roman}
+
+\iffalse 
+\includepdf[pages={-}]{tepak_titlepage.pdf}
+\fi
+
 \pdfbookmark[0]{Title}{title}
-\input{./title.tex}
-\input{./copyright.tex}
+\input{title.tex}
+\newpage
+\pagestyle{empty}
+\mbox{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\setcounter{page}{2}
+\input{copyright.tex}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\thispagestyle{empty}
+\pagestyle{plain}
 \pdfbookmark[0]{Acknowledgements}{acks}
-{\Large \bf \noindent Acknowledgements}
-\\Here go the acknowledgements
+{\Large \bf \noindent Acknowledgements} \\[0.5cm]
+\input{ack.tex}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,7 +92,6 @@ Finally we are suggesting that Software Defined Networking could benefit from Se
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-\pagestyle{plain}
 
 \renewcommand{\nomname}{Abbreviations}
 \phantomsection
@@ -290,7 +241,7 @@ We have far passed the individuality of monads. \emph{We achieve more in groups 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \section{The Serval Networking Architecture}
-\input{./serval.tex}
+\input{serval.tex}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -350,6 +301,13 @@ A well thought Service centric architecture provides two things
 the right abstractions for services (developers and users)
 a service-aware control plane
 
+\begin{figure}
+\centering
+\phantomsection
+\includegraphics[scale=0.6]{figures/ECCP_sm}
+\caption[The ECCP state machine]{The ECCP \cite{Arye2012} state machine.}
+\end{figure}
+
 So that control plane could be merged with software defined networking apis
 sdn apis that have control over the fabric of the network
 
@@ -402,7 +360,7 @@ User Serval as it is, but with a Distributed Service Resolution Service
 \\3. Results of deployment in PlanetLab
 \\4. Start preparing an RFC?
 
-\subsection{ServalDHT: Secure-DHT based Service Resolution Service for Serval}
+\subsection{ServalDHT: Secure-DHT based Service Resolution Service for the Serval architecture}
 \subsubsection{The challenges of private, hierarchical DNS}
 Over time, the Internet has gathered a great power over diverse societies.
 People all around the world are trusting in order to read about the news, form a political opinion, solve problems in their working environment, do market research.
@@ -519,7 +477,7 @@ DNS has been proved fallible to various attacks, like (Distributed) Denial of Se
 \textbf{Instructions: }
 \begin{enumerate} \itemsep1pt \parskip0pt 
 \parsep0pt
-	\item You might want to set the executable bit as a superuser (chmod +x init\_servtest.sh)
+	\item You might want to set the executable bit (chmod +x init\_servtest.sh)
 	\item Execute the script with superuser privileges
 	\item View the help with \texttt{-}h\\[0.5cm]
 \end{enumerate}

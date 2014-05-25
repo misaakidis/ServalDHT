@@ -2,7 +2,11 @@
 Serval\footnote{More information about the Serval Architecture can be found in the presentation in the Appendix (\ref{sec:servaldhtpres}).} is an end-host stack evolving into a service-centric network architecture, proposed and prototyped by the \href{https://sns.cs.princeton.edu/}{systems and networking group} at \href{https://www.princeton.edu}{Princeton University}, in 2012.
 
 \paragraph{} In the original paper "A Service Access Layer, at Your Service" (2011)\cite{Freedman2011} and later on "Serval: An End-Host Stack for Service-Centric Networking" (2012)\cite{Nordstrom2012}, Freedman, Nordstr{\"o}m et. al. first decompose the needs of modern networked applications, locate the discordances with the current Network Stack, study previous work and how each of them individually fails to stand as a proper solution, rethink the current TCP/IP Networking Stack and propose two simple abstractions that can obliterate the legacy problems discussed on Problem Definition (\ref{problemdefinition}).\\
-\indent Furthermore they investigate how those abstractions fit in a new 3.5 layer, the Service Access Layer (SAL)\nomenclature{SAL}{Service Access Layer}, and emphasize on the clean service-level data/control plane separation it imposes. After all, they review a formally-verified end-to-end connection control protocol (ECCP) \nomenclature{ECCP}{End-to-End Connection Control Protocol} [TODO], which elevates services to first-class citizens.
+\indent Furthermore they investigate how those abstractions fit in a new 3.5 layer, the Service Access Layer (SAL)\nomenclature{SAL}{Service Access Layer}, and emphasize on the clean service-level data/control plane separation it imposes.
+Additionally, they review a formally-verified end-to-end connection control protocol (ECCP) \nomenclature{ECCP}{End-to-End Connection Control Protocol} [TODO], which elevates services to first-class citizens.
+After all, they focus on the SAL prototype and the lessons learned from building it.
+
+
 
 \subsection{Proposed abstractions}
 As will be discussed later on at the section "Review of Relative Bibliography" (\ref{sec:reviewbibliography}), various abstractions have been proposed in order to support the concept of Service-Centric networking.
@@ -12,41 +16,50 @@ Those abstractions should be transparent enough for legacy ports and hot swappin
 Also, for the tight fit of those abstractions in the separation of data and control plane.
 Finally, it is remarkable how the adoption of those abstractions requires minimal if no modifications at all in the infrastructure that powers networks today.
 
+
+
 \subsubsection{Service Names}
 The main idea behind Service-Centric Networking is that nowadays network users request services by their names and are completely agnostic of the underlying procedures.
 Hereby an abstraction is needed for identifying a service, resolving and of course effectively routing a request to an instance of that service, according to specific rules.
 For that reason Serval introduces service names, or \emph{serviceIDs}.\\
 \indent ServiceIDs are large (256 bit long) strings, that correspond to a service, or a group of services.
-Part of Serval packets as a service extension header in the synchronization process, serviceIDs assist in resolution and service-level routing.
-Furthermore they are used as persistent, global identifiers for easier handling on replicated services, virtual machine migrations or mobile hosts, when there is a need for end-point signaling.
+Part of Serval packets as a Service Access Extension header in the synchronization process (SYN and SYN-ACK flags in ECCP state machine figure TODOFIG), serviceIDs assist in resolution and service-level routing.
+Furthermore they are used as persistent, global identifiers for easier handling of replicated services, virtual machine migrations or mobile hosts, when there is a need for end-point signaling.\\
 \indent What is unique about Serval's abstraction of service identifiers is that since they are managed by the SAL, they are positioned below the transport layer.
-Jointly with Serval active sockets, 
-
+Jointly with Serval active sockets, the abstraction of service names obscures host identifiers (IP and Port) from the application layer, but stills offers powerful, familiar APIs\nomenclature{API}{Application Programming Interface} to networked application developers.
 \indent service granularity (block allocation) \\
-\indent In an elegant way serviceIDs promote services to the principal entities in the network, obscuring host identifiers (IP and Port) from the application layer, still offering powerful, familiar APIs\nomenclature{API}{Application Programming Interface} to networked application developers.
+\indent To sum up, in an elegant way serviceIDs promote services to the principal entities in the network, give applications direct access to the lower stack layers, registration and unregistration, 
+
+
 
 \subsection{Service Resolution}
-\subsubsection{Hierarchical Resolution}  Relative to today's domain name system, those serviceIDs can be mapped to human-readable strings, much like URIs.
+Those service names in a deeper level get mapped to 
+human readable strings similar to domain names, for identifying services.
+regardless it's geographical position, the port it is bound, 
 
 
-\subsubsection{Flat Resolution Schemes} Another approach suggests that serviceIDs are calculated by a hash function on a service prefix and an application-level instance unique key.
+
+\subsubsection{Hierarchical Resolution}
+Relative to today's domain name system, those serviceIDs can be mapped to human-readable strings, much like URIs.
+
+
+
+\subsubsection{Flat Resolution Schemes}
+Another approach suggests that serviceIDs are calculated by a hash function on a service prefix and an application-level instance unique key.
 This practice of a \emph{semantic-free, flat} namespace better supports networks without a hierarchical structure, like datacenter and Wide Area networks.
 By semantic-free\cite{Walfisha2004} reference we mean that by default 
 
 
-
 \subsection{Service-Level Routing} 
+No need for deep packet inspection in load balancers
+
+
+
 \subsubsection{Late binding}
-
-
-Those service names in a deeper level get mapped to 
-human readable strings similar to domain names, for identifying services.
- regardless it's geographical position, the port it is bound, 
-
-
 \subsection{Serval Network Stack}
 \subsubsection{Service Controller}
 \subsubsection{Service Access Layer}
+\subsubsection{Serval Packets Structure}
 
 \subsection{Application portability and incremental deployment}
 - A translator can be used but: (ADD SCHEMA)
@@ -57,7 +70,10 @@ apps still work with the traditional apis
  -- reimplements the functionality already working on SAL
 
 
-\input{./ports.tex}
+
+\input{ports.tex}
+
+
 
 \subsection{Profiling the Serval prototype implementation}
 Among the admirable headliners of Serval is the working prototype version of the proposed architecture.
@@ -71,8 +87,11 @@ In more than 28000 lines of code\footnote{Source code is open source and can be 
   \item The sum of requests that can be satisfied within a given timeframe
 \end{enumerate}
 Then we will be graphically presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family. The first four tests have not been published before.
-\paragraph{} Output was obtained on a ...... machine running Ubuntu 11.04 (Natty Narwahl) kernel version 2.6.38-16-generic (rebuilt with debug symbols). Serval was built with --enable-debug option for the first three tests.\\
-For the measurements we ported the nginx\footnote{Nginx [engine-ex] is an Open Source HTTP, reverse proxy and mail proxy server\\ \url{http://nginx.org/}.} web server to Serval architecture, integrating the [nginx\_1.2.9\_serval\_fqdn] branch commits into the build procedure. Also, we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call. Source code of both can be found in the Appendix (\ref{sec:sourcecode}).
+
+\paragraph{} Output was obtained on a HP Prodesk 600 G1 --Intel(R) Core(TM) i5-4570 @ 3.20GHZ, 4GB RAM-- machine running Ubuntu 11.04 (Natty Narwahl) kernel version 2.6.38-16-generic (rebuilt with debug symbols). Serval was built with \texttt{-{}-}enable-debug option for the first three tests.\\
+\indent For the measurements we ported the nginx\footnote{Nginx [engine-ex] is an Open Source HTTP, reverse proxy and mail proxy server\\ \url{http://nginx.org/}.} web server to Serval architecture, integrating the [nginx\_1.2.9\_serval\_fqdn] branch commits from \mbox{sns/Serval} repository into the build procedure.
+Also, we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call.
+Source code of both can be found in the Appendix (\ref{sec:sourcecode}).
 
 
 \iffalse
@@ -86,5 +105,3 @@ google-profile tools
 5) requests per second
 6) Number of packers per request, bytes sent, packet structure
 \fi
-
-TODO: Complete this section, maybe add HIP, Chord and OpenFlow
