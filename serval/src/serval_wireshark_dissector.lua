@@ -19,6 +19,8 @@ local SAL_HDR_LEN = 12
 local SAL_EXT_LEN = 2
 local MAX_NUM_SAL_EXTENSIONS = 10
 
+local TCP_HDR_LEN = 20
+
 -- Define Extension types
 local SAL_PAD_EXT = 0x00
 local SAL_CONTROL_EXT = 0x01
@@ -43,10 +45,24 @@ f.sal_ext_typeres = ProtoField.uint8("serval.ext_typeres", "Extension TypeRes", 
 f.sal_ext_length = ProtoField.uint8("serval.ext_length", "Extension Length", base.DEC)
 f.sal_ext_data = ProtoField.bytes("serval.ext_data", "Extension Data", base.HEX)
 
+-- Transport Layer fields
+f.tcp_src_port = ProtoField.uint16("serval.tcp_src_port", "Source Port", base.DEC)
+f.tcp_dst_port = ProtoField.uint16("serval.tcp_dst_port", "Destination Port", base.DEC)
+f.tcp_seq = ProtoField.uint32("serval.tcp_seq", "Sequence number", base.DEC)
+f.tcp_ack = ProtoField.uint32("serval.tcp_ack", "Acknowledge number", base.DEC)
+f.tcp_data_offset = ProtoField.uint8("serval.tcp_data_offset", "Data Offset", base.DEC)
+-- f.tcp_reserved
+-- f.tcp_flags
+-- f.tcp_window_size
+-- f.tcp_check
+-- f.tcp_urg
+f.tcp_options = ProtoField.bytes("serval.tcp_options", "Options", base.HEX)
+
 
 -- Create a function to dissect Serval
 function serval_proto.dissector(buffer,pinfo,tree)
     pinfo.cols.protocol = "Serval"
+    local transport_protocol = 0
 
     -- Dissect the SAL header bits (Serval Access Layer header)
     local subtree_access = tree:add(serval_proto,buffer(0,SAL_HDR_LEN),"Serval SAL Header")
@@ -58,6 +74,7 @@ function serval_proto.dissector(buffer,pinfo,tree)
         local ext_hdr_len = buffer(8,1):uint()*4 - SAL_HDR_LEN
     	
         subtree_access:add(f.protocol,buffer(9,1))
+        transport_protocol = buffer(9,1):uint()
         subtree_access:add(f.check,buffer(10,2))
 
     -- If there are extension data, dissect them as well
@@ -72,7 +89,7 @@ function serval_proto.dissector(buffer,pinfo,tree)
         while (ext_hdr_len > ext_hdr_consumed and i < MAX_NUM_SAL_EXTENSIONS) do
 
             ext_length = 0
-            ext_type = buffer(SAL_HDR_LEN+ext_hdr_consumed,1):bitfield(1,4)
+            ext_type = buffer(SAL_HDR_LEN+ext_hdr_consumed,1):bitfield(0,4)
 
             if ext_type == SAL_PAD_EXT then
                 type_msg = "PAD"
@@ -110,12 +127,23 @@ function serval_proto.dissector(buffer,pinfo,tree)
         end
     end
 
-    -- Find Serval Access Extension Data length
+    -- Transport Protocol Specific headers
+    local transport_hdr_len = 0
+    -- If Protocol is TCP
+    if transport_protocol == 6 then
+        local data_offset = buffer(SAL_HDR_LEN+ext_hdr_len+12, 1):bitfield(0,4)
+        transport_hdr_len = data_offset * 4
+        local subtree_protocol = tree:add(serval_proto,buffer(SAL_HDR_LEN+ext_hdr_len,transport_hdr),"Transmission Control Protocol: " .. transport_hdr_len .. " bytes")
+            subtree_protocol:add(f.tcp_data_offset, buffer(SAL_HDR_LEN+ext_hdr_len+12, 1))
+            if transport_hdr_len > TCP_HDR_LEN then
+                subtree_protocol:add(f.tcp_options, buffer(SAL_HDR_LEN+ext_hdr_len+TCP_HDR_LEN, transport_hdr_len-TCP_HDR_LEN))
+            end
+    end
 
     -- Finally print the payload
-    local payload_length = buffer:len() - SAL_HDR_LEN - ext_hdr_len
+    local payload_length = buffer:len() - SAL_HDR_LEN - ext_hdr_len - transport_hdr_len
     if payload_length > 0 then
-        local payload_buffer = buffer(SAL_HDR_LEN+ext_hdr_len, payload_length)
+        local payload_buffer = buffer(SAL_HDR_LEN+ext_hdr_len+transport_hdr_len, payload_length)
         local payload = payload_buffer:string()
         local subtree_payload = tree:add(serval_proto, payload_buffer, "Payload: " .. payload_length .. " bytes")
             subtree_payload:add(payload)
