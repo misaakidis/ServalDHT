@@ -51,11 +51,11 @@ f.tcp_dst_port = ProtoField.uint16("serval.tcp_dst_port", "Destination Port", ba
 f.tcp_seq = ProtoField.uint32("serval.tcp_seq", "Sequence number", base.DEC)
 f.tcp_ack = ProtoField.uint32("serval.tcp_ack", "Acknowledge number", base.DEC)
 f.tcp_data_offset = ProtoField.uint8("serval.tcp_data_offset", "Data Offset", base.DEC)
--- f.tcp_reserved
--- f.tcp_flags
--- f.tcp_window_size
--- f.tcp_check
--- f.tcp_urg
+f.tcp_reserved = ProtoField.uint8("serval.tcp_reserved", "Reserved", base.HEX)
+f.tcp_flags = ProtoField.uint8("serval.tcp_flags", "Flags", base.HEX)
+f.tcp_window_size = ProtoField.uint16("serval.tcp_window_size", "Window Size", base.DEC)
+f.tcp_check = ProtoField.uint16("serval.tcp_check", "Check", base.HEX)
+f.tcp_urg = ProtoField.uint16("serval.tcp_urg", "Urgent Pointer", base.HEX)
 f.tcp_options = ProtoField.bytes("serval.tcp_options", "Options", base.HEX)
 
 
@@ -63,6 +63,8 @@ f.tcp_options = ProtoField.bytes("serval.tcp_options", "Options", base.HEX)
 function serval_proto.dissector(buffer,pinfo,tree)
     pinfo.cols.protocol = "Serval"
     local transport_protocol = 0
+
+    if buffer:len() == 0 then return end
 
     -- Dissect the SAL header bits (Serval Access Layer header)
     local subtree_access = tree:add(serval_proto,buffer(0,SAL_HDR_LEN),"Serval SAL Header")
@@ -130,11 +132,20 @@ function serval_proto.dissector(buffer,pinfo,tree)
     -- Transport Protocol Specific headers
     local transport_hdr_len = 0
     -- If Protocol is TCP
-    if transport_protocol == 6 then
+    if buffer:len() > (SAL_HDR_LEN+ext_hdr_len) and transport_protocol == 6 then
         local data_offset = buffer(SAL_HDR_LEN+ext_hdr_len+12, 1):bitfield(0,4)
         transport_hdr_len = data_offset * 4
         local subtree_protocol = tree:add(serval_proto,buffer(SAL_HDR_LEN+ext_hdr_len,transport_hdr),"Transmission Control Protocol: " .. transport_hdr_len .. " bytes")
-            subtree_protocol:add(f.tcp_data_offset, buffer(SAL_HDR_LEN+ext_hdr_len+12, 1))
+            subtree_protocol:add(f.tcp_src_port, buffer(SAL_HDR_LEN+ext_hdr_len, 2))
+            subtree_protocol:add(f.tcp_dst_port, buffer(SAL_HDR_LEN+ext_hdr_len+2, 2))
+            subtree_protocol:add(f.tcp_seq, buffer(SAL_HDR_LEN+ext_hdr_len+4, 4))
+            subtree_protocol:add(f.tcp_ack, buffer(SAL_HDR_LEN+ext_hdr_len+8, 4))
+            subtree_protocol:add(f.tcp_data_offset, buffer(SAL_HDR_LEN+ext_hdr_len+12, 1):bitfield(0,4))
+            subtree_protocol:add(f.tcp_reserved, buffer(SAL_HDR_LEN+ext_hdr_len+12, 1):bitfield(4,3))
+            subtree_protocol:add(f.tcp_flags, buffer(SAL_HDR_LEN+ext_hdr_len+13, 1))
+            subtree_protocol:add(f.tcp_window_size, buffer(SAL_HDR_LEN+ext_hdr_len+14, 2))
+            subtree_protocol:add(f.tcp_check, buffer(SAL_HDR_LEN+ext_hdr_len+16, 2))
+            subtree_protocol:add(f.tcp_urg, buffer(SAL_HDR_LEN+ext_hdr_len+18, 2))
             if transport_hdr_len > TCP_HDR_LEN then
                 subtree_protocol:add(f.tcp_options, buffer(SAL_HDR_LEN+ext_hdr_len+TCP_HDR_LEN, transport_hdr_len-TCP_HDR_LEN))
             end
