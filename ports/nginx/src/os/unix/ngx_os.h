@@ -12,6 +12,9 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
+#if (NGX_HAVE_SERVAL)
+#include <netinet/serval.h>
+#endif
 
 #define NGX_IO_SENDFILE    1
 
@@ -23,10 +26,18 @@ typedef ngx_chain_t *(*ngx_send_chain_pt)(ngx_connection_t *c, ngx_chain_t *in,
     off_t limit);
 
 typedef struct {
+#if (NGX_HAVE_SERVAL)
+    ngx_recv_pt        recv_sv;
+#else
     ngx_recv_pt        recv;
+#endif
     ngx_recv_chain_pt  recv_chain;
     ngx_recv_pt        udp_recv;
+#if (NGX_HAVE_SERVAL)
+    ngx_send_pt        send_sv;
+#else
     ngx_send_pt        send;
+#endif
     ngx_send_chain_pt  send_chain;
     ngx_uint_t         flags;
 } ngx_os_io_t;

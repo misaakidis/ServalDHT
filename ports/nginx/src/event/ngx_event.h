@@ -454,10 +454,18 @@ extern ngx_event_actions_t   ngx_event_actions;
 
 extern ngx_os_io_t  ngx_io;
 
+#if (NGX_HAVE_SERVAL)
+#define ngx_recv             ngx_io.recv_sv
+#else
 #define ngx_recv             ngx_io.recv
+#endif
 #define ngx_recv_chain       ngx_io.recv_chain
 #define ngx_udp_recv         ngx_io.udp_recv
+#if (NGX_HAVE_SERVAL)
+#define ngx_send             ngx_io.send_sv
+#else
 #define ngx_send             ngx_io.send
+#endif
 #define ngx_send_chain       ngx_io.send_chain
 
 

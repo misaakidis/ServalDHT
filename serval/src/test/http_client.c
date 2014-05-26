@@ -108,7 +108,7 @@ int send_httpget_req(int sock) {
 			htmlcontent = buf;
 		}
 		if(htmlstart) {
-			fprintf(stdout, htmlcontent);
+			fprintf(stdout, (char *) htmlcontent);
 		}
 
 		if(tmpres <= 0) {

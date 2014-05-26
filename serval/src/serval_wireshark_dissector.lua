@@ -44,6 +44,7 @@ f.sal_ext = ProtoField.bytes("serval.ext", "Extension", base.HEX)
 f.sal_ext_typeres = ProtoField.uint8("serval.ext_typeres", "Extension TypeRes", base.HEX)
 f.sal_ext_length = ProtoField.uint8("serval.ext_length", "Extension Length", base.DEC)
 f.sal_ext_data = ProtoField.bytes("serval.ext_data", "Extension Data", base.HEX)
+f.sal_ext_ctrl_flags = ProtoField.uint8("serval.ext_ctrl_flags", "Control Flags", base.HEX)
 
 -- Transport Layer fields
 f.tcp_src_port = ProtoField.uint16("serval.tcp_src_port", "Source Port", base.DEC)
@@ -120,7 +121,12 @@ function serval_proto.dissector(buffer,pinfo,tree)
                 local sub_ext_tree = subtree_extension:add(serval_proto,buffer(SAL_HDR_LEN+ext_hdr_consumed,ext_length),"Serval Extension: " .. type_msg .. " (" .. ext_hdr_consumed .. "," .. ext_hdr_consumed+ext_length .. ")")
                     sub_ext_tree:add(f.sal_ext_typeres, buffer(SAL_HDR_LEN+ext_hdr_consumed,1))
                     sub_ext_tree:add(f.sal_ext_length, buffer(SAL_HDR_LEN+ext_hdr_consumed+1,1)) 
-                    sub_ext_tree:add(f.sal_ext_data, buffer(SAL_HDR_LEN+ext_hdr_consumed+2,ext_length-2))  
+                    if ext_type == SAL_CONTROL_EXT then
+                        sub_ext_tree:add(f.sal_ext_ctrl_flags, buffer(SAL_HDR_LEN+ext_hdr_consumed+2,1))
+                        sub_ext_tree:add(f.sal_ext_data, buffer(SAL_HDR_LEN+ext_hdr_consumed+3,ext_length-3))
+                    else
+                        sub_ext_tree:add(f.sal_ext_data, buffer(SAL_HDR_LEN+ext_hdr_consumed+2,ext_length-2)) 
+                    end
             end
 
             i = i + 1
