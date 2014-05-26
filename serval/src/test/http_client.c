@@ -1,39 +1,22 @@
 /* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*- */
-// Copyright (c) 2014 Marios Isaakidis (misaakidis@yahoo.gr)
-
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and/or hardware specification (the “Work”) to deal
-// in the Work without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Work, and to permit persons to whom the Work is
-// furnished to do so, subject to the following conditions: The above
-// copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Work.
-
-// THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-// ARISING FROM, OUT OF OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER
-// DEALINGS IN THE WORK.
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <netinet/serval.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <libserval/serval.h>
 
 static const char *progname = "http_client";
-static unsigned short DEFAULT_SERVER_SID = 8;
+
+static unsigned short DEFAULT_SERVER_SID = 80;
 static struct service_id server_srvid;
-static char *page = "/";
 static char *host = "127.0.0.1";
-static int should_exit = 0;
-char *get;
+
 char buf[BUFSIZ+1];
 
 #define USERAGENT "HTMLGET 1.0"
+static char *page = "/";
 
 static void signal_handler(int sig)
 {
@@ -74,6 +57,7 @@ static int set_reuse_ok(int soc)
 	return 0;
 }
 
+// coding.debuntu.org
 char *build_get_query()
 {
 	char *query;
@@ -90,26 +74,27 @@ char *build_get_query()
 }
 
 int send_httpget_req(int sock) {
-	//Send the query to the server
+	char* getReq = build_get_query();
+	// Send the query to the server
 	int sent = 0;
 	int tmpres = 0;
-	while(sent < strlen(get))
+	while(sent < strlen(getReq))
 	{
-		tmpres = send_sv(sock, get+sent, strlen(get)-sent, 0);
+		tmpres = send_sv(sock, getReq+sent, strlen(getReq)-sent, 0);
 		if(tmpres == -1){
-			perror("Can't send query");
+			fprintf(stderr, "can't send http get query");
 			exit(1);
 		}
 		sent += tmpres;
 	}
-	//now it is time to receive the page
+	// now it is time to receive the page
 	memset(buf, 0, sizeof(buf));
 	int htmlstart = 0;
 	char * htmlcontent;
+	int should_exit = 0;
 	while(!should_exit){
 		tmpres = recv_sv(sock, buf, BUFSIZ, 0);
-		if(htmlstart == 0)
-		{
+		if(htmlstart == 0) {
 			/* Under certain conditions this will not work.
 			 * If the \r\n\r\n part is splitted into two messages
 			 * it will fail to detect the beginning of HTML content
@@ -119,20 +104,19 @@ int send_httpget_req(int sock) {
 				htmlstart = 1;
 				htmlcontent += 4;
 			}
-		}else{
+		} else {
 			htmlcontent = buf;
 		}
-		if(htmlstart){
+		if(htmlstart) {
 			fprintf(stdout, htmlcontent);
 		}
 
-		if(tmpres <= 0)
+		if(tmpres <= 0) {
 		        should_exit = 1;
+		}
 
-		//memset(buf, 0, tmpres);
 	}
-	if(tmpres < 0)
-	{
+	if(tmpres < 0) {
 		perror("Error receiving data");
 	}
 	return 0;
@@ -242,8 +226,6 @@ static int client(struct in_addr *srv_inetaddr, int port)
 #endif
 	printf("Connected successfully!\n");
 
-	//ret = recv_file(sock, filepath, digest);
-	get = build_get_query();
 	ret = send_httpget_req(sock);
 
 	if (ret == EXIT_SUCCESS) {
@@ -263,7 +245,8 @@ static void print_help()
 	printf("Usage: %s [OPTIONS]\n", progname);
 	printf("-h, --help                        - Print this information.\n"
 			"-s, --serviceid SERVICE_ID        - ServiceID to connect to.\n"
-			"-i, --inet IP_ADDR                - Use AF_INET\n");
+			"-i, --inet IP_ADDR                - Use AF_INET\n"
+			"-p, --page WEBPAGE				   - Request a specific webpage\n");
 }
 
 static int parse_inet_str(char *inet_str,
@@ -342,7 +325,7 @@ int main(int argc, char **argv)
 			}
 			argc--;
 			argv++;
-		} else if (strcmp("-page", argv[0]) == 0 ||
+		} else if (strcmp("-p", argv[0]) == 0 ||
 				strcmp("--page", argv[0]) == 0) {
 			if (argv[1]) {
 				page = argv[1];
