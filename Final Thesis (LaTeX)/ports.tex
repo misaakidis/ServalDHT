@@ -13,14 +13,25 @@ In any way, operation behind legacy networks and NATs can be achieved via UDP en
 
 \subsubsection{Modified Programming Interfaces}
 Unlike other proposals which can be either integrated in programs as libraries or provide abstractions by overloading identifiers such as ports, Serval's kernel module implementation requires applications to be modified in order to use its active sockets API.\\
-\indent The complexity of porting an existing application to Serval depends on how neatly is the connection module separated.
-Large applications like Mozilla Firefox require around modifications in just 60 lines of code.
-We are discussing this topic further on at the Porting a networked application to Serval (\ref{sec:portingapps}) subsection.
+\indent In other words, a minimum port of an existing applications would require to include and link to \textless libserval/serval.h\textgreater ~and \textless netinet/serval.h\textgreater ~libraries, set socket family to AF\_SERVAL and substitute system calls to the socket layer such as connect, bind, accept, send etc to use serviceIDs.
+Minor modifications might be needed, since new identifiers require different size of bytes to be allocated in memory and so on.\\
+\indent The complexity of porting an existing application to Serval depends on how neatly is the connection module isolated.
+In general, applications that support various protocols are easier to be ported, since connectivity functions are already decoupled from the program logic and can be replicated to support new APIs.
+Large applications, with thousands lines of code,\nomenclature{loc}{lines of code} like Mozilla Firefox require modifications in around just 70 lines of code.
+Design patterns like singleton and factory noticeably indicate which parts of the source code should be altered.\\
+\indent Nevertheless, applications can simultaneously support multiple protocols and stacks, according to the requests of the other end.
+This will be a great advantage in the transitory period of large scale deployment.\\
+\indent On the other hand, unexpected runtime results might be confronted due to overlapping of features offered by SAL and reimplemented in the program.
+For instance service load balancing at SAL, an inherent component of Serval, might muddle with the application-specific way of allotting requests.
+In such cases if possible one of the methods should dominate the final decision.
+Either a unique serviceID of an allocated serviceID block --as described in the Hierarchical Resolution approach-- should be used for each instance, and let load-balancing be made by application's functions.
+Or load-balancing logic within the application should be removed when a socket's family is AF\_SERVAL and be managed according to service-level rules defined in SAL.\\
+\indent We are discussing the lessons learned from the port of nginx\footnote{Nginx [engine-ex] is an Open Source HTTP, reverse proxy and mail proxy server\\ \url{http://nginx.org/}.} to Serval in the following section.
 
 
- 
-\subsubsection{Porting a networked application to Serval}
-\label{sec:portingapps}
+\subsubsection{nginx port to Serval}
+
+Lessons learned from nginx.
 There are many 
 
 - Requires to rebuild the whole project with the new abstractions (Serval active sockets) and include Serval libraries
@@ -33,7 +44,7 @@ calls in many files then complexity arises
 example: 2 levels of loadbalancing
 
 
-\subsubsection{Serval translator}
+\subsubsection{Incremental Deployment with Serval translator}
 
 - A translator can be used but: (ADD SCHEMA)
 works as an intermediate

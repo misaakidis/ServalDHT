@@ -29,7 +29,7 @@ Furthermore they are used as persistent, global identifiers for easier handling 
 Jointly with Serval active sockets, the abstraction of service names obscures host identifiers (IP and Port) from the application layer, but stills offers powerful, familiar APIs\nomenclature{API}{Application Programming Interface} to networked application developers.
 \indent service granularity (block allocation) \\
 \indent To sum up, in an elegant way serviceIDs promote services to the principal entities in the network, by giving applications intermediate access to the service control plane and 
-And it manages to do so while hiding unneeded abstractions, such as the<IP,port> tuple.
+And it manages to do so while hiding unneeded abstractions, such as the $<IP, port>$ tuple.
 
 
 \subsection{Service Resolution}
@@ -67,8 +67,6 @@ This opens new windows for experimentation and innovation.
 
 \input{ports.tex}
 
-
-
 \subsection{Profiling the Serval prototype implementation}
 Among the admirable headliners of Serval is the working prototype version of the proposed architecture.
 In more than 28000 lines of code\footnote{Source code is open source and can be found in their public repository\\ \url{https://github.com/princeton-sns/serval/}.} covering functionality of the Service Access Layer (both in userlevel operation and as a Linux kernel module), bindings for multiple programming languages, a translator, libraries and examples for writing Serval compatible applications, and with a reported throughput comparable to the unmodified TCP/IP stack, it is clearly showcased the feasibility of the solution.\\
@@ -83,7 +81,7 @@ In more than 28000 lines of code\footnote{Source code is open source and can be 
 Then we will be graphically presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family. The first four tests have not been published before.
 
 \paragraph{} Output was obtained on a HP Prodesk 600 G1 --Intel(R) Core(TM) i5-4570 @ 3.20GHZ, 4GB RAM-- machine running Ubuntu 11.04 (Natty Narwahl) kernel version 2.6.38-16-generic (rebuilt with debug symbols). Serval was built with \texttt{-{}-}enable-debug option for the first three tests.\\
-\indent For the measurements we ported the nginx\footnote{Nginx [engine-ex] is an Open Source HTTP, reverse proxy and mail proxy server\\ \url{http://nginx.org/}.} web server to Serval architecture, integrating the [nginx\_1.2.9\_serval\_fqdn] branch commits from \mbox{sns/Serval} repository into the build procedure.
+\indent For the measurements we ported the nginx web server to Serval architecture, integrating the [nginx\_1.2.9\_serval\_fqdn] branch commits from \mbox{sns/Serval} repository into the build procedure.
 Also, we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call.
 Source code of both can be found in the Appendix (\ref{sec:sourcecode}).
 
