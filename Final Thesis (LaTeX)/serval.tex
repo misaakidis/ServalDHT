@@ -57,18 +57,12 @@ No need for deep packet inspection in load balancers
 
 \subsubsection{Late binding}
 \subsection{Serval Network Stack}
+Extra points go to Serval for being transport-protocol agnostic.
+This means that developers may choose to use either TCP, UDP\nomenclature{UDP}{User Datagram Protocol}, ATP\nomenclature{ATP}{AppleTalk Transaction Protocol}, FCP\nomenclature{FCP}{Fibre Channel Protocol} or actually any transport protocol, since it is supported by SAL, without modifying the source code of their application.
+This opens new windows for experimentation and innovation.
 \subsubsection{Service Controller}
 \subsubsection{Service Access Layer}
 \subsubsection{Serval Packets Structure}
-
-\subsection{Application portability and incremental deployment}
-- A translator can be used but: (ADD SCHEMA)
-works as an intermediate
-slows down performance
-apps still work with the traditional apis
- -- adds complexity, translator will have to support many versions/protocols and error proof for them
- -- reimplements the functionality already working on SAL
-
 
 
 \input{ports.tex}

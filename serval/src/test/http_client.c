@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <libserval/serval.h>
+#include <netinet/serval.h>
 
 static const char *progname = "http_client";
 

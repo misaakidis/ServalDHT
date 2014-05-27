@@ -1,4 +1,26 @@
+\subsection{Migrations and incremental deployment}
+With Serval being actively under development, it is time to discuss the deployment approaches that could guide us to something that has never happened before; the wide adoption of a new network stack.
+Above all, benchmarks prove that tapping Serval in large scale networks as well as datacenters offers a wide range of new functionality in speeds comparable to the original TCP/IP stack ones.\\
+\indent A smooth transition to a new architecture requires two things: first that current hardware and intermediary devices are compatible or at least do not interfere with the new packet headers, and that applications are utilizing the late interfaces and are able to dissect and synthesize those packets.
+
+\subsubsection{Legacy Hardware}
+SAL's position just on top of the network layer makes it translucent to networking equipment such as hubs, switches and routers, since they are messing up with the headers of up to the network layer.
+At this level, hardware is responsible only for delivering the packets to the right destination, the way they have been doing so far.\\
+\indent Serval on the contrary is not immune to stateful packet inspection\nomenclature{SPI}{Stateful Packet Inspection} and deep packet inspection\nomenclature{DPI}{Deep Packet Inspection}.
+Intermediaries who access the headers of the transport or above layers will have a hard time dissecting a minimum 32 extra bytes following the network layer.
+The use of NAT-based agents though, such as load balancers, can be obscured due to the late binding on serviceIDs.
+In any way, operation behind legacy networks and NATs can be achieved via UDP encapsulation.
+
+\subsubsection{Modified Programming Interfaces}
+Unlike other proposals which can be either integrated in programs as libraries or provide abstractions by overloading identifiers such as ports, Serval's kernel module implementation requires applications to be modified in order to use its active sockets API.\\
+\indent The complexity of porting an existing application to Serval depends on how neatly is the connection module separated.
+Large applications like Mozilla Firefox require around modifications in just 60 lines of code.
+We are discussing this topic further on at the Porting a networked application to Serval (\ref{sec:portingapps}) subsection.
+
+
+ 
 \subsubsection{Porting a networked application to Serval}
+\label{sec:portingapps}
 There are many 
 
 - Requires to rebuild the whole project with the new abstractions (Serval active sockets) and include Serval libraries
@@ -10,3 +32,12 @@ calls in many files then complexity arises
 - Extra implemented functionality can cause unexpected runtime results
 example: 2 levels of loadbalancing
 
+
+\subsubsection{Serval translator}
+
+- A translator can be used but: (ADD SCHEMA)
+works as an intermediate
+slows down performance
+apps still work with the traditional apis
+ -- adds complexity, translator will have to support many versions/protocols and error proof for them
+ -- reimplements the functionality already working on SAL
