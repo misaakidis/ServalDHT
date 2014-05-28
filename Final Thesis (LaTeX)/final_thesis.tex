@@ -11,6 +11,7 @@
 \usepackage{nomencl}
 \usepackage{pdfpages}
 \usepackage{listings}
+\usepackage{caption}
 
 \input{custom_listings.tex}
 
@@ -144,7 +145,7 @@ Then, in the following two sections, it is outlined the theoretical background a
 \label{problemdefinition}
 The concept of Internet has radically changed since its first onset, around half a century ago; millions of multi-homed users, possibly moving across networks, are asking for data and services offered by multiple servers, which can be replicated and situated in various geographical locations.
 Yet, due to legacy reverse compatibility reasons, bureaucracy obstructions and the compulsion of large scale testing and deployment, only a few modifications managed to consolidate and provide the framework for communicating in the largest computer network.
-This situation is leading to erratic band-aids where network administrators and developers overload the existing network abstractions, like the IP \nomenclature{IP}{Internet Protocol} addresses and ports, in order to provide the supplementary functionality needed by a network with dynamic users and where services and data become first-class citizens.\\
+This situation is leading to erratic band-aids where network administrators and developers overload the existing network abstractions, like the IP \nomenclature{IP}{Internet Protocol} addresses and ports, in order to provide the supplementary functionality needed by a network with dynamic users and where services and data become first-class primitives.\\
 \indent In addition, it is observed that the freedom in Internet is menacingly encircled by equivocal organizations trying to be the ones who will win the authorship and control over its content and autonomy.\\
 \indent In the subsections following we take a closer look to the problems ServalDHT intents to elucidate divided by their main source.
 
@@ -450,6 +451,7 @@ DNS has been proved fallible to various attacks, like (Distributed) Denial of Se
 \newpage
 \phantomsection
 \addcontentsline{toc}{subsection}{B.1 nginx Serval port}
+\label{sec:nginxport}
 {\huge \bf \noindent B.1 nginx Serval port}\\[0.5cm]
 \textbf{File:} ports/nginx/nginx-1.2.9-integrated-serval.patch\\
 \textbf{Description:} Patch nginx version 1.2.9 to use Serval active sockets. Based on nginx\_1.2.9\_serval\_fqdn branch.\\

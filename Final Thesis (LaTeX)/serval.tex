@@ -31,6 +31,8 @@ Jointly with Serval active sockets, the abstraction of service names obscures ho
 \indent To sum up, in an elegant way serviceIDs promote services to the principal entities in the network, by giving applications intermediate access to the service control plane and 
 And it manages to do so while hiding unneeded abstractions, such as the $<IP, port>$ tuple.
 
+\subsubsection{End-host flow identifiers}
+
 
 \subsection{Service Resolution}
 Those service names in a deeper level get mapped to 
@@ -69,7 +71,7 @@ This opens new windows for experimentation and innovation.
 
 \subsection{Profiling the Serval prototype implementation}
 Among the admirable headliners of Serval is the working prototype version of the proposed architecture.
-In more than 28000 lines of code\footnote{Source code is open source and can be found in their public repository\\ \url{https://github.com/princeton-sns/serval/}.} covering functionality of the Service Access Layer (both in userlevel operation and as a Linux kernel module), bindings for multiple programming languages, a translator, libraries and examples for writing Serval compatible applications, and with a reported throughput comparable to the unmodified TCP/IP stack, it is clearly showcased the feasibility of the solution.\\
+In more than 28000 lines of code\footnote{Serval is an Open Source code, hosted at a public repository\\ \url{https://github.com/princeton-sns/serval/}.} covering functionality of the Service Access Layer (both in userlevel operation and as a Linux kernel module), bindings for multiple programming languages, a translator, libraries and examples for writing Serval compatible applications, and with a reported throughput comparable to the unmodified TCP/IP stack, it is clearly showcased the feasibility of the solution.\\
 \indent In this section we are profiling the prototype in regard to the following parameters:
 \begin{enumerate}
   \item Memory Management
