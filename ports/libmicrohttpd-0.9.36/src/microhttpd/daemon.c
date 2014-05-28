@@ -295,10 +295,12 @@ MHD_ip_addr_to_key (const struct sockaddr *addr,
 
 #if HAVE_SERVAL
   /* Serval serviceIDs */
-  if (sizeof (struct sockaddr_sv) == addrlen) {
+  if (sizeof (struct sockaddr_sv) == addrlen)
+  {
 	  const struct sockaddr_sv *addrsv = (const struct sockaddr_sv*) addr;
 	  key->family = AF_SERVAL;
 	  memcpy (&key->addr.addr_sv, &addrsv->sv_srvid, sizeof(addrsv->sv_srvid));
+	  return MHD_YES;
   }
 #endif
 
@@ -1784,7 +1786,9 @@ MHD_add_connection (struct MHD_Daemon *daemon,
 static int
 MHD_accept_connection (struct MHD_Daemon *daemon)
 {
-#if HAVE_INET6
+#if HAVE_SERVAL
+	struct sockaddr_sv addrstorage;
+#elif HAVE_INET6
   struct sockaddr_in6 addrstorage;
 #else
   struct sockaddr_in addrstorage;
@@ -3336,6 +3340,9 @@ MHD_start_daemon_va (unsigned int flags,
 #if HAVE_INET6
   struct sockaddr_in6 servaddr6;
 #endif
+#if HAVE_SERVAL
+  struct sockaddr_sv servaddrsv;
+#endif
   const struct sockaddr *servaddr = NULL;
   socklen_t addrlen;
   unsigned int i;
@@ -3566,12 +3573,18 @@ MHD_start_daemon_va (unsigned int flags,
        (0 == (daemon->options & MHD_USE_NO_LISTEN_SOCKET)) )
     {
       /* try to open listen socket */
+	  //TODOSERVAL add flag MHD_USE_Serval
+#if HAVE_SERVAL
+	  socket_fd = create_socket (daemon,
+	  				   PF_SERVAL, SOCK_STREAM, 0);
+#else
       if ((flags & MHD_USE_IPv6) != 0)
 	socket_fd = create_socket (daemon,
 				   PF_INET6, SOCK_STREAM, 0);
       else
 	socket_fd = create_socket (daemon,
 				   PF_INET, SOCK_STREAM, 0);
+#endif
       if (MHD_INVALID_SOCKET == socket_fd)
 	{
 #if HAVE_MESSAGES
@@ -3596,14 +3609,28 @@ MHD_start_daemon_va (unsigned int flags,
 	}
 
       /* check for user supplied sockaddr */
+      //TODOSERVAL add flag MHD_USE_Serval
+#if HAVE_SERVAL
+    addrlen = sizeof (struct sockaddr_sv);
+#else
 #if HAVE_INET6
       if (0 != (flags & MHD_USE_IPv6))
 	addrlen = sizeof (struct sockaddr_in6);
       else
 #endif
 	addrlen = sizeof (struct sockaddr_in);
+#endif
       if (NULL == servaddr)
 	{
+#if HAVE_SERVAL
+	      memset (&servaddrsv, 0, sizeof (struct sockaddr_sv));
+	      servaddrsv.sv_family = AF_SERVAL;
+	      //TODOSERVAL Calculate serviceID
+	      memset(&servaddrsv.sv_srvid, 0, sizeof(servaddrsv.sv_srvid));
+	      servaddrsv.sv_srvid.s_sid[7] = 8;
+	      servaddr = (struct sockaddrsv *) &servaddrsv;
+	    }
+#else
 #if HAVE_INET6
 	  if (0 != (flags & MHD_USE_IPv6))
 	    {
@@ -3616,7 +3643,7 @@ MHD_start_daemon_va (unsigned int flags,
 	      servaddr = (struct sockaddr *) &servaddr6;
 	    }
 	  else
-#endif
+#else
 	    {
 	      memset (&servaddr4, 0, sizeof (struct sockaddr_in));
 	      servaddr4.sin_family = AF_INET;
@@ -3627,6 +3654,8 @@ MHD_start_daemon_va (unsigned int flags,
 	      servaddr = (struct sockaddr *) &servaddr4;
 	    }
 	}
+#endif
+#endif
       daemon->socket_fd = socket_fd;
 
       if (0 != (flags & MHD_USE_IPv6))

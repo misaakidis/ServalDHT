@@ -1390,8 +1390,12 @@ SPDYF_session_accept(struct SPDY_Daemon *daemon)
   int ret;
 	struct SPDY_Session *session = NULL;
 	socklen_t addr_len;
+
+#if HAVE_SERVAL
+	struct sockaddr_sv *addr;
+	addr_len = sizeof(addr);
+#else
 	struct sockaddr *addr;
-  
 #if HAVE_INET6
 	struct sockaddr_in6 addr6;
 	
@@ -1403,8 +1407,9 @@ SPDYF_session_accept(struct SPDY_Daemon *daemon)
 	addr = (struct sockaddr *)&addr4;
 	addr_len = sizeof(addr6);
 #endif
-	
-  new_socket_fd = accept (daemon->socket_fd, addr, &addr_len);
+#endif
+
+  new_socket_fd = accept (daemon->socket_fd, (struct sockaddr *) addr, &addr_len);
     
   if(new_socket_fd < 1)
 		return SPDY_NO;

@@ -188,6 +188,9 @@ SPDYF_start_daemon_va (uint16_t port,
 #if HAVE_INET6
 	struct sockaddr_in6* servaddr6 = NULL;
 #endif
+#if HAVE_SERVAL
+	struct sockaddr_sv* servaddrsv = NULL;
+#endif
 	socklen_t addrlen;
 
 	if (NULL == (daemon = malloc (sizeof (struct SPDY_Daemon))))
@@ -244,20 +247,42 @@ SPDYF_start_daemon_va (uint16_t port,
 	daemon->fnew_stream_cb = fnscb;
 	daemon->freceived_data_cb = fndcb;
 
-#if HAVE_INET6
-	//handling IPv6
-	if((daemon->flags & SPDY_DAEMON_FLAG_ONLY_IPV6)
-		&& NULL != daemon->address && AF_INET6 != daemon->address->sa_family)
+#if HAVE_SERVAL
+	//handling Serval
+	if(daemon->flags & SPDY_DAEMON_FLAG_ONLY_IPV6)
 	{
-		SPDYF_DEBUG("SPDY_DAEMON_FLAG_ONLY_IPV6 set but IPv4 address provided");
+		SPDYF_DEBUG("SPDY_DAEMON_FLAG_ONLY_IPV6 set but no support");
 		goto free_and_fail;
 	}
-  
-  addrlen = sizeof (struct sockaddr_in6);
+
+	addrlen = sizeof (struct sockaddr_sv);
+
+	if(NULL == daemon->address)
+	{
+		if (NULL == (servaddr4 = malloc (addrlen)))
+		{
+			SPDYF_DEBUG("malloc");
+			goto free_and_fail;
+		}
+
+		memset (servaddrsv, 0, addrlen);
+		servaddrsv->sv_family = AF_SERVAL;
+		//TODOSERVAL Calculate serviceID
+		memset(&servaddrsv->sv_srvid, 0, sizeof(&servaddrsv->sv_srvid));
+		servaddrsv->sv_srvid.s_sid[7] = 8;
+		daemon->address = (struct sockaddr_sv *) servaddrsv;
+	}
+
+	afamily = PF_SERVAL;
+#else
+
+#if HAVE_INET6
+	//handling IPv6
+	addrlen = sizeof (struct sockaddr6);
     
 	if(NULL == daemon->address)
 	{		
-		if (NULL == (servaddr6 = malloc (addrlen)))
+		if (NULL == (servaddrsv = malloc (addrlen)))
 		{
 			SPDYF_DEBUG("malloc");
 			goto free_and_fail;
@@ -303,6 +328,7 @@ SPDYF_start_daemon_va (uint16_t port,
 	
 	afamily = PF_INET;
 #endif	
+#endif
 
 	daemon->socket_fd = socket (afamily, SOCK_STREAM, 0);
 	if (-1 == daemon->socket_fd)

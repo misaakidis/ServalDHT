@@ -635,7 +635,11 @@ struct SPDY_Session
 	/**
 	 * Foreign address (of length addr_len).
 	 */
+#if HAVE_SERVAL
+	struct sockaddr_sv *addr;
+#else
 	struct sockaddr *addr;
+#endif
 
 	/**
 	 * Head of doubly-linked list of the SPDY streams belonging to the
