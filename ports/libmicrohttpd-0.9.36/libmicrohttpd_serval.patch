@@ -1,0 +1,379 @@
+diff --git a/ports/libmicrohttpd-0.9.36/MHD_config.h.in b/ports/libmicrohttpd-0.9.36/MHD_config.h.in
+index b339aa2..9f87dba 100644
+--- a/ports/libmicrohttpd-0.9.36/MHD_config.h.in
++++ b/ports/libmicrohttpd-0.9.36/MHD_config.h.in
+@@ -101,6 +101,9 @@
+ /* Define to 1 if you have the <netinet/in.h> header file. */
+ #undef HAVE_NETINET_IN_H
+ 
++/* Define to 1 if you have the <netinet/serval.h> header file. */
++#undef HAVE_NETINET_SERVAL_H
++
+ /* Define to 1 if you have the <netinet/tcp.h> header file. */
+ #undef HAVE_NETINET_TCP_H
+ 
+@@ -143,6 +146,9 @@
+ /* Define to 1 if you have the <search.h> header file. */
+ #undef HAVE_SEARCH_H
+ 
++/* Provides Serval headers */
++#undef HAVE_SERVAL
++
+ /* Do we have sockaddr_in.sin_len? */
+ #undef HAVE_SOCKADDR_IN_SIN_LEN
+ 
+diff --git a/ports/libmicrohttpd-0.9.36/configure b/ports/libmicrohttpd-0.9.36/configure
+index a330fe2..4b47aa8 100755
+--- a/ports/libmicrohttpd-0.9.36/configure
++++ b/ports/libmicrohttpd-0.9.36/configure
+@@ -13605,7 +13605,7 @@ done
+ 
+ 
+ # Check for optional headers
+-for ac_header in sys/types.h sys/time.h sys/msg.h netdb.h netinet/in.h netinet/tcp.h time.h sys/socket.h sys/mman.h arpa/inet.h sys/select.h poll.h search.h
++for ac_header in sys/types.h sys/time.h sys/msg.h netdb.h netinet/in.h netinet/tcp.h time.h sys/socket.h sys/mman.h arpa/inet.h sys/select.h poll.h search.h netinet/serval.h
+ do :
+   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+@@ -13914,6 +13914,44 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_inet6" >&5
+ $as_echo "$have_inet6" >&6; }
+ 
++# Serval Active Sockets
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Serval" >&5
++$as_echo_n "checking for Serval... " >&6; }
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++
++#if HAVE_NETINET_SERVAL_H
++#include <netinet/serval.h>
++#endif
++
++int
++main ()
++{
++
++struct sockaddr_sv	ssv;
++int af=AF_SERVAL;
++ssv.sv_family = AF_SERVAL;
++
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_compile "$LINENO"; then :
++
++have_serval=yes;
++
++$as_echo "#define HAVE_SERVAL 1" >>confdefs.h
++
++
++else
++
++have_serval=no
++
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_serval" >&5
++$as_echo "$have_serval" >&6; }
++
+ # TCP_CORK and TCP_NOPUSH
+ ac_fn_c_check_decl "$LINENO" "TCP_CORK" "ac_cv_have_decl_TCP_CORK" "#include <netinet/tcp.h>
+ "
+diff --git a/ports/libmicrohttpd-0.9.36/configure.ac b/ports/libmicrohttpd-0.9.36/configure.ac
+index 6e87051..6a5ba73 100644
+--- a/ports/libmicrohttpd-0.9.36/configure.ac
++++ b/ports/libmicrohttpd-0.9.36/configure.ac
+@@ -311,7 +311,7 @@ fi
+ AC_CHECK_HEADERS([fcntl.h math.h errno.h limits.h stdio.h locale.h sys/stat.h sys/types.h pthread.h],,AC_MSG_ERROR([Compiling libmicrohttpd requires standard UNIX headers files]))
+ 
+ # Check for optional headers
+-AC_CHECK_HEADERS([sys/types.h sys/time.h sys/msg.h netdb.h netinet/in.h netinet/tcp.h time.h sys/socket.h sys/mman.h arpa/inet.h sys/select.h poll.h search.h])
++AC_CHECK_HEADERS([sys/types.h sys/time.h sys/msg.h netdb.h netinet/in.h netinet/tcp.h time.h sys/socket.h sys/mman.h arpa/inet.h sys/select.h poll.h search.h netinet/serval.h])
+ AM_CONDITIONAL([HAVE_TSEARCH], [test "x$ac_cv_header_search_h" = "xyes"])
+ 
+ AC_CHECK_MEMBER([struct sockaddr_in.sin_len],
+@@ -432,6 +432,24 @@ have_inet6=no
+ ])
+ AC_MSG_RESULT($have_inet6)
+ 
++# Serval Active Sockets
++AC_MSG_CHECKING(for Serval)
++AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
++#if HAVE_NETINET_SERVAL_H
++#include <netinet/serval.h>
++#endif
++]], [[
++struct sockaddr_sv	ssv;
++int af=AF_SERVAL;
++ssv.sv_family = AF_SERVAL;
++]])],[
++have_serval=yes;
++AC_DEFINE([HAVE_SERVAL], [1], [Provides Serval headers])
++],[
++have_serval=no
++])
++AC_MSG_RESULT($have_serval)
++
+ # TCP_CORK and TCP_NOPUSH
+ AC_CHECK_DECLS([TCP_CORK, TCP_NOPUSH], [], [], [[#include <netinet/tcp.h>]])
+ 
+diff --git a/ports/libmicrohttpd-0.9.36/src/include/platform.h b/ports/libmicrohttpd-0.9.36/src/include/platform.h
+index 4837f3d..16176b4 100644
+--- a/ports/libmicrohttpd-0.9.36/src/include/platform.h
++++ b/ports/libmicrohttpd-0.9.36/src/include/platform.h
+@@ -118,6 +118,9 @@
+ #if HAVE_NETDB_H
+ #include <netdb.h>
+ #endif
++#if HAVE_NETINET_SERVAL_H
++#include <netinet/serval.h>
++#endif
+ #if HAVE_NETINET_IN_H
+ #include <netinet/in.h>
+ #endif
+diff --git a/ports/libmicrohttpd-0.9.36/src/microhttpd/daemon.c b/ports/libmicrohttpd-0.9.36/src/microhttpd/daemon.c
+index 0c59496..7798982 100644
+--- a/ports/libmicrohttpd-0.9.36/src/microhttpd/daemon.c
++++ b/ports/libmicrohttpd-0.9.36/src/microhttpd/daemon.c
+@@ -178,7 +178,7 @@ MHD_get_master (struct MHD_Daemon *daemon)
+ struct MHD_IPCount
+ {
+   /**
+-   * Address family. AF_INET or AF_INET6 for now.
++   * Address family. AF_INET, AF_INET6 or AF_SERVAL for now.
+    */
+   int family;
+ 
+@@ -197,6 +197,12 @@ struct MHD_IPCount
+      */
+     struct in6_addr ipv6;
+ #endif
++#if HAVE_SERVAL
++    /**
++     * Serval address
++     */
++    struct service_id addr_sv;
++#endif
+   } addr;
+ 
+   /**
+@@ -287,6 +293,17 @@ MHD_ip_addr_to_key (const struct sockaddr *addr,
+     }
+ #endif
+ 
++#if HAVE_SERVAL
++  /* Serval serviceIDs */
++  if (sizeof (struct sockaddr_sv) == addrlen)
++  {
++	  const struct sockaddr_sv *addrsv = (const struct sockaddr_sv*) addr;
++	  key->family = AF_SERVAL;
++	  memcpy (&key->addr.addr_sv, &addrsv->sv_srvid, sizeof(addrsv->sv_srvid));
++	  return MHD_YES;
++  }
++#endif
++
+   /* Some other address */
+   return MHD_NO;
+ }
+@@ -1769,7 +1786,9 @@ MHD_add_connection (struct MHD_Daemon *daemon,
+ static int
+ MHD_accept_connection (struct MHD_Daemon *daemon)
+ {
+-#if HAVE_INET6
++#if HAVE_SERVAL
++	struct sockaddr_sv addrstorage;
++#elif HAVE_INET6
+   struct sockaddr_in6 addrstorage;
+ #else
+   struct sockaddr_in addrstorage;
+@@ -3321,6 +3340,9 @@ MHD_start_daemon_va (unsigned int flags,
+ #if HAVE_INET6
+   struct sockaddr_in6 servaddr6;
+ #endif
++#if HAVE_SERVAL
++  struct sockaddr_sv servaddrsv;
++#endif
+   const struct sockaddr *servaddr = NULL;
+   socklen_t addrlen;
+   unsigned int i;
+@@ -3551,12 +3573,18 @@ MHD_start_daemon_va (unsigned int flags,
+        (0 == (daemon->options & MHD_USE_NO_LISTEN_SOCKET)) )
+     {
+       /* try to open listen socket */
++	  //TODOSERVAL add flag MHD_USE_Serval
++#if HAVE_SERVAL
++	  socket_fd = create_socket (daemon,
++	  				   PF_SERVAL, SOCK_STREAM, 0);
++#else
+       if ((flags & MHD_USE_IPv6) != 0)
+ 	socket_fd = create_socket (daemon,
+ 				   PF_INET6, SOCK_STREAM, 0);
+       else
+ 	socket_fd = create_socket (daemon,
+ 				   PF_INET, SOCK_STREAM, 0);
++#endif
+       if (MHD_INVALID_SOCKET == socket_fd)
+ 	{
+ #if HAVE_MESSAGES
+@@ -3581,14 +3609,28 @@ MHD_start_daemon_va (unsigned int flags,
+ 	}
+ 
+       /* check for user supplied sockaddr */
++      //TODOSERVAL add flag MHD_USE_Serval
++#if HAVE_SERVAL
++    addrlen = sizeof (struct sockaddr_sv);
++#else
+ #if HAVE_INET6
+       if (0 != (flags & MHD_USE_IPv6))
+ 	addrlen = sizeof (struct sockaddr_in6);
+       else
+ #endif
+ 	addrlen = sizeof (struct sockaddr_in);
++#endif
+       if (NULL == servaddr)
+ 	{
++#if HAVE_SERVAL
++	      memset (&servaddrsv, 0, sizeof (struct sockaddr_sv));
++	      servaddrsv.sv_family = AF_SERVAL;
++	      //TODOSERVAL Calculate serviceID
++	      memset(&servaddrsv.sv_srvid, 0, sizeof(servaddrsv.sv_srvid));
++	      servaddrsv.sv_srvid.s_sid[3] = 80;
++	      servaddr = (struct sockaddrsv *) &servaddrsv;
++	    }
++#else
+ #if HAVE_INET6
+ 	  if (0 != (flags & MHD_USE_IPv6))
+ 	    {
+@@ -3601,7 +3643,7 @@ MHD_start_daemon_va (unsigned int flags,
+ 	      servaddr = (struct sockaddr *) &servaddr6;
+ 	    }
+ 	  else
+-#endif
++#else
+ 	    {
+ 	      memset (&servaddr4, 0, sizeof (struct sockaddr_in));
+ 	      servaddr4.sin_family = AF_INET;
+@@ -3612,6 +3654,8 @@ MHD_start_daemon_va (unsigned int flags,
+ 	      servaddr = (struct sockaddr *) &servaddr4;
+ 	    }
+ 	}
++#endif
++#endif
+       daemon->socket_fd = socket_fd;
+ 
+       if (0 != (flags & MHD_USE_IPv6))
+diff --git a/ports/libmicrohttpd-0.9.36/src/microspdy/daemon.c b/ports/libmicrohttpd-0.9.36/src/microspdy/daemon.c
+index 93cda87..61ff5f8 100644
+--- a/ports/libmicrohttpd-0.9.36/src/microspdy/daemon.c
++++ b/ports/libmicrohttpd-0.9.36/src/microspdy/daemon.c
+@@ -188,6 +188,9 @@ SPDYF_start_daemon_va (uint16_t port,
+ #if HAVE_INET6
+ 	struct sockaddr_in6* servaddr6 = NULL;
+ #endif
++#if HAVE_SERVAL
++	struct sockaddr_sv* servaddrsv = NULL;
++#endif
+ 	socklen_t addrlen;
+ 
+ 	if (NULL == (daemon = malloc (sizeof (struct SPDY_Daemon))))
+@@ -244,16 +247,38 @@ SPDYF_start_daemon_va (uint16_t port,
+ 	daemon->fnew_stream_cb = fnscb;
+ 	daemon->freceived_data_cb = fndcb;
+ 
+-#if HAVE_INET6
+-	//handling IPv6
+-	if((daemon->flags & SPDY_DAEMON_FLAG_ONLY_IPV6)
+-		&& NULL != daemon->address && AF_INET6 != daemon->address->sa_family)
++#if HAVE_SERVAL
++	//handling Serval
++	if(daemon->flags & SPDY_DAEMON_FLAG_ONLY_IPV6)
+ 	{
+-		SPDYF_DEBUG("SPDY_DAEMON_FLAG_ONLY_IPV6 set but IPv4 address provided");
++		SPDYF_DEBUG("SPDY_DAEMON_FLAG_ONLY_IPV6 set but no support");
+ 		goto free_and_fail;
+ 	}
+-  
+-  addrlen = sizeof (struct sockaddr_in6);
++
++	addrlen = sizeof (struct sockaddr_sv);
++
++	if(NULL == daemon->address)
++	{
++		if (NULL == (servaddrsv = malloc (addrlen)))
++		{
++			SPDYF_DEBUG("malloc");
++			goto free_and_fail;
++		}
++
++		memset (servaddrsv, 0, addrlen);
++		servaddrsv->sv_family = AF_SERVAL;
++		//TODOSERVAL Calculate serviceID
++		memset(&servaddrsv->sv_srvid, 0, sizeof(&servaddrsv->sv_srvid));
++		servaddrsv->sv_srvid.s_sid[3] = 80;
++		daemon->address = (struct sockaddr_sv *) servaddrsv;
++	}
++
++	afamily = PF_SERVAL;
++#else
++
++#if HAVE_INET6
++	//handling IPv6
++	addrlen = sizeof (struct sockaddr6);
+     
+ 	if(NULL == daemon->address)
+ 	{		
+@@ -303,6 +328,7 @@ SPDYF_start_daemon_va (uint16_t port,
+ 	
+ 	afamily = PF_INET;
+ #endif	
++#endif
+ 
+ 	daemon->socket_fd = socket (afamily, SOCK_STREAM, 0);
+ 	if (-1 == daemon->socket_fd)
+diff --git a/ports/libmicrohttpd-0.9.36/src/microspdy/session.c b/ports/libmicrohttpd-0.9.36/src/microspdy/session.c
+index 131d310..18733a8 100644
+--- a/ports/libmicrohttpd-0.9.36/src/microspdy/session.c
++++ b/ports/libmicrohttpd-0.9.36/src/microspdy/session.c
+@@ -1390,8 +1390,12 @@ SPDYF_session_accept(struct SPDY_Daemon *daemon)
+   int ret;
+ 	struct SPDY_Session *session = NULL;
+ 	socklen_t addr_len;
++
++#if HAVE_SERVAL
++	struct sockaddr_sv *addr;
++	addr_len = sizeof(addr);
++#else
+ 	struct sockaddr *addr;
+-  
+ #if HAVE_INET6
+ 	struct sockaddr_in6 addr6;
+ 	
+@@ -1403,8 +1407,9 @@ SPDYF_session_accept(struct SPDY_Daemon *daemon)
+ 	addr = (struct sockaddr *)&addr4;
+ 	addr_len = sizeof(addr6);
+ #endif
+-	
+-  new_socket_fd = accept (daemon->socket_fd, addr, &addr_len);
++#endif
++
++  new_socket_fd = accept (daemon->socket_fd, (struct sockaddr *) addr, &addr_len);
+     
+   if(new_socket_fd < 1)
+ 		return SPDY_NO;
+diff --git a/ports/libmicrohttpd-0.9.36/src/microspdy/structures.h b/ports/libmicrohttpd-0.9.36/src/microspdy/structures.h
+index 8a94dcd..b761a9c 100644
+--- a/ports/libmicrohttpd-0.9.36/src/microspdy/structures.h
++++ b/ports/libmicrohttpd-0.9.36/src/microspdy/structures.h
+@@ -635,7 +635,11 @@ struct SPDY_Session
+ 	/**
+ 	 * Foreign address (of length addr_len).
+ 	 */
++#if HAVE_SERVAL
++	struct sockaddr_sv *addr;
++#else
+ 	struct sockaddr *addr;
++#endif
+ 
+ 	/**
+ 	 * Head of doubly-linked list of the SPDY streams belonging to the

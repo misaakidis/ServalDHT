@@ -1,5 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapterpage{A. Presentation}{A. PRESENTATIONS}
+\newpage
+\phantomsection
+\addcontentsline{toc}{section}{A. Presentations}
+\label{sec:sourcecode}
+{\Huge \bf \noindent B. PRESENTATIONS}
 
 \newpage
 \phantomsection
@@ -20,15 +24,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \phantomsection
-\addcontentsline{toc}{subsection}{B.1 nginx Serval port}
+\addcontentsline{toc}{subsection}{B.1 nginx Serval patch integration}
 \label{sec:nginxport}
-{\huge \bf \noindent B.1 nginx Serval port}\\[0.5cm]
+{\huge \bf \noindent B.1 nginx Serval patch integration}\\[0.5cm]
 \textbf{File:} ports/nginx/nginx-1.2.9-integrated-serval.patch\\
-\textbf{Description:} Patch nginx version 1.2.9 to use Serval active sockets. Based on nginx\_1.2.9\_serval\_fqdn branch.\\
+\textbf{Description:} Integrate Serval patch nginx version 1.2.9 in the build procedure.\\
 \textbf{Instructions: }
 \begin{enumerate} \itemsep1pt \parskip0pt 
 \parsep0pt
-	\item Apply the patch using git
+	\item Apply the patch using git to nginx\_1.2.9\_serval\_fqdn branch.
 	\item Copy libraries from serval/include to a path included in the search path of your compiler (normally that should be /usr/local/include/)
 	\item Configure nginx with serval (ports/nginx/configure --with-serval)
 	\item Make sure configure script found netinet/serval.h library and can build AF\_SERVAL
@@ -38,7 +42,7 @@
 	\item Restart nginx and now you can accept both AF\_INET and AF\_SERVAL requests
 	\item nginx Service ID is 8\\[0.5cm]
 \end{enumerate}
-\lstinputlisting[language=diff]{source_code/nginx-1.2.9-integrated-serval.patch}
+\lstinputlisting[language=diff]{source_code/nginx-serval-build-patch.diff}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
@@ -80,3 +84,17 @@
 \textbf{Description:} HTTP client that works both with AF\_SERVAL and AF\_INET families.\\
 \textbf{Instructions: } Print usage with \texttt{-}h or \texttt{{-}{-}}help\\[0.5cm]
 \lstinputlisting[style=CColor]{source_code/http_client.c}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\phantomsection
+\addcontentsline{toc}{subsection}{B.5 libmicrohttpd Serval port}
+{\huge \bf \noindent B.5 libmicrohttpd Serval port}\\[0.5cm]
+\textbf{File:} ports/libmicrohttpd-0.9.36/libmicrohttpd\_serval.patch\\
+\textbf{Description:} Patch libmicrohttpd version 0.9.36 to use Serval active sockets.\\
+\textbf{Instructions: }
+\begin{enumerate} \itemsep1pt \parskip0pt 
+\parsep0pt
+	\item Add\\[0.5cm]
+\end{enumerate}
+\lstinputlisting[language=diff]{source_code/libmicrohttpd_serval.patch}
