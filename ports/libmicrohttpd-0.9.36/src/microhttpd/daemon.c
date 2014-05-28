@@ -3627,7 +3627,7 @@ MHD_start_daemon_va (unsigned int flags,
 	      servaddrsv.sv_family = AF_SERVAL;
 	      //TODOSERVAL Calculate serviceID
 	      memset(&servaddrsv.sv_srvid, 0, sizeof(servaddrsv.sv_srvid));
-	      servaddrsv.sv_srvid.s_sid[7] = 8;
+	      servaddrsv.sv_srvid.s_sid[3] = 80;
 	      servaddr = (struct sockaddrsv *) &servaddrsv;
 	    }
 #else

@@ -1,19 +1,23 @@
 *.deps
 *.libs
 *.o
+.libs
+_libs
 *.lo
 *.la
 *.rc
 *~
+vti.tmp
+html
 .cproject
 .project
 *Makefile
 stamp-*
 *.log
 *.pc
-MHD_config.h
 autom4te.cache/
 config.status
+MHD_config.h
 
 doc/examples/basicauthentication
 doc/examples/hellobrowser
