@@ -259,7 +259,7 @@ SPDYF_start_daemon_va (uint16_t port,
 
 	if(NULL == daemon->address)
 	{
-		if (NULL == (servaddr4 = malloc (addrlen)))
+		if (NULL == (servaddrsv = malloc (addrlen)))
 		{
 			SPDYF_DEBUG("malloc");
 			goto free_and_fail;
@@ -269,7 +269,7 @@ SPDYF_start_daemon_va (uint16_t port,
 		servaddrsv->sv_family = AF_SERVAL;
 		//TODOSERVAL Calculate serviceID
 		memset(&servaddrsv->sv_srvid, 0, sizeof(&servaddrsv->sv_srvid));
-		servaddrsv->sv_srvid.s_sid[7] = 8;
+		servaddrsv->sv_srvid.s_sid[3] = 80;
 		daemon->address = (struct sockaddr_sv *) servaddrsv;
 	}
 
@@ -282,7 +282,7 @@ SPDYF_start_daemon_va (uint16_t port,
     
 	if(NULL == daemon->address)
 	{		
-		if (NULL == (servaddrsv = malloc (addrlen)))
+		if (NULL == (servaddr6 = malloc (addrlen)))
 		{
 			SPDYF_DEBUG("malloc");
 			goto free_and_fail;
