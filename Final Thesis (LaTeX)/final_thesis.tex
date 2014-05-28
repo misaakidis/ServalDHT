@@ -14,14 +14,21 @@
 \usepackage{caption}
 
 \input{custom_listings.tex}
-
 \makenomenclature
 
 \begin{document}
 
-% TODO Add CUT template titlepage
+\newcommand{\chapterpage}[2]{
+	\newpage
+	\pagestyle{empty}
+	\phantomsection
+	\addcontentsline{toc}{part}{#1}
+	{\Huge \bf \noindent #2}
+	\newpage
+}
 
-%Insert titlepage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Titlepages
 \pagenumbering{roman}
 
 \iffalse 
@@ -35,20 +42,21 @@
 \mbox{}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright
 \newpage
 \setcounter{page}{2}
 \input{copyright.tex}
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Acknowledgements
 \newpage
 \pagestyle{plain}
 \pdfbookmark[0]{Acknowledgements}{acks}
 {\Large \bf \noindent Acknowledgements} \\[0.5cm]
 \input{ack.tex}
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Abstract
 \newpage
 \thispagestyle{empty}
 \pdfbookmark[0]{Abstract}{abstract}
@@ -71,29 +79,23 @@ Finally we are suggesting that Software Defined Networking could benefit from Se
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tables
 \newpage
 \pdfbookmark[0]{Tables and Lists}{tal}
 \pdfbookmark[1]{Table of Contents}{toc}
 \tableofcontents
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \phantomsection
 \addcontentsline{toc}{section}{List of Figures}
 \listoffigures
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \phantomsection
 \addcontentsline{toc}{section}{List of Tables}
 \listoftables
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-
 \renewcommand{\nomname}{Abbreviations}
 \phantomsection
 \addcontentsline{toc}{section}{Abbreviations}
@@ -101,6 +103,7 @@ Finally we are suggesting that Software Defined Networking could benefit from Se
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
 \newpage
 \pagenumbering{arabic}
 \setcounter{page}{1}
@@ -130,154 +133,30 @@ Then, in the following two sections, it is outlined the theoretical background a
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\thispagestyle{empty}
-\phantomsection
-\addcontentsline{toc}{part}{Problem Definition}
-{\Huge \bf \noindent PROBLEM DEFINITION}
-\newpage
+% Chapter: Problem Definition
+\chapterpage{Problem Definition}{PROBLEM DEFINITION}
 
+\input{defining_the_problem.tex}
+\input{importance_of_the_problem.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\section{Defining the Problem}
-\label{problemdefinition}
-The concept of Internet has radically changed since its first onset, around half a century ago; millions of multi-homed users, possibly moving across networks, are asking for data and services offered by multiple servers, which can be replicated and situated in various geographical locations.
-Yet, due to legacy reverse compatibility reasons, bureaucracy obstructions and the compulsion of large scale testing and deployment, only a few modifications managed to consolidate and provide the framework for communicating in the largest computer network.
-This situation is leading to erratic band-aids where network administrators and developers overload the existing network abstractions, like the IP \nomenclature{IP}{Internet Protocol} addresses and ports, in order to provide the supplementary functionality needed by a network with dynamic users and where services and data become first-class primitives.\\
-\indent In addition, it is observed that the freedom in Internet is menacingly encircled by equivocal organizations trying to be the ones who will win the authorship and control over its content and autonomy.\\
-\indent In the subsections following we take a closer look to the problems ServalDHT intents to elucidate divided by their main source.
-
-\subsection{An obsolete network stack}
-The network TCP/IP \nomenclature{TCP}{Transmission Control Protocol}\nomenclature{IP}{Internet Protocol} stack which is still used today was designed in an era when a few end hosts where static in specific topological positions, communicating over a sole network interface, accessing services like telnet and ftp.
-The problems by this approach start to accumulate even in the lowest layers, and specifically the Network Layer.
-\paragraph{Network Layer} The Network Layer (or Internet Layer) is responsible for packet forwarding, including routing through intermediate routers, and it does so using a hierarchical IP addressing scheme.
-This bind however of a topological-aware IP address to an interface does not manage well with the notion of mobility, where interfaces are not necessarily tied to a specific network.
-Nevertheless, an IP address cannot identify forever a host since after a disconnection, the IP address is renewed to one that was most likely previously used by another interface of another machine.
-Again, the difficulties in migrating to IPv6 clearly demonstrate the problem with the tight connection of a specific protocol with the programming interfaces (in this case AF\_INET sockets).
-\pagebreak
-\paragraph{Transport Layer} The Transport Layer provides end-to-end communication services for applications within a layered architecture of network components and protocols.
-This is achieved by demultiplexing incoming packets to a socket using the five-tuple (remote IP, remote port, local IP, local port, protocol).
-Since local IP is tied to a unique interface, support for migration or multi-path traffic over multiple network interfaces has to be implemented individually by the protocol or the above layers.
-Never to forget that every time a renewal of IP address occurs the connection has to be reestablished or at least the other end host has to be notified somehow for the new address. Also, without serving any particular reason, the remote IP address and port have to be exposed to the upper layers. \\
-\indent For the case of load balancers, every single packet, even from an already established connection, has to pass through them.
-This results in a need for dedicated software or hardware, proliferates the demanded computational power, and causes unnecessary ''east-west'' machine-to-machine traffic. In large scale networks with nodes distributed in distant topological locations this can evoke router stretching and increased latency times.
-\paragraph{Application Layer}  The Application Layer is an abstraction layer reserved for communication protocols and methods designed for process-to-process communications across an Internet Protocol (IP) computer network.
-Because of the overload of IP addresses and ports on lower layers, the Application Layer has to cache them and handle them too.
-At the same time, violating the principle of software reuse, each application has to implement from scratch all the logic for the additional functionality of modern Internet (migration, multiple clients support, multihoming, load balancing, mobility etc.), in order to offer it to its users.\\
-\indent Another complication in the Application Layer can be detected during the initiation of a connection, and especially during the mapping of a service identifier to an IP address.
-As of now, applications must use out-of-band services like DNS and follow preconcerted conventions before the commencement of the connection.
-Additionally, by caching the IP address of the service provider instead or re-resolving the service identifier, the service provider is constrained in changing its IP address (in cases of migration, machine or network failure, multihoming etc.), as it will result to the termination of the established connections and a slow failover, considering that some time is needed for the DNS distributed servers to be updated and to respond correctly to the clients.
-
-\newpage
-\subsection{The need for Service-Centric Networking}
-In the very early Internet, "calling" the IP address of a machine would get you to one of the killer applications of that time, telnet or ftp.
-Those services were run by a single machine and could not accept simultaneous users.
-However this approach is not common nowadays, when hundreds of users want to search a keyword in their favorite search engine at the same time.
-They do not care about the actual location on the map of the service provider, or which of the machines is serving them accessing a distributed database.
-Neither the database of a search engine is that small that can be stored in a single hard disk nor a sole machine can respond to all those requests.
-Still such services exist and manage well with the always increasing demand. \\
-\indent It is only because developers and network administrators are utilizing middleboxes and implementing intermediate systems in order to overcome the deficiencies caused by the superseded network abstractions.
-However, this comes with a cost.
-Developers have to work with primitive, low-level APIs and to handle many cases of downfalls, needing many costly man-hours, being prone to errors, repeating the same procedure again and again diverging from efficient code writing.
-System administrators have to master all those intermediate systems and make them work agreeably.
-Routers route packets containing both data and network identifiers without the ability of policy governed delegation.
-Replicated service instances run autonomously without a way to directly communicate with each other in a network level.
-Master nodes in clusters shoulder the responsibility of the reinstatement over network failures in a wavering manner.
-Middleboxes evoke large time delays, they need extra hardware, power, space.
-And the list goes on.\\
-\indent To sum up, users nowadays want to access a service or to retrieve some data.
-The abstraction of a service can suit well any use of Internet anyone can think of; watch a video, send an e-mail, make a phone call, remotely access a distant machine. Unfortunately so far there is no standardized practice for effectively developing and administering services, abandoning developers to create their own mercurial quick fixes, an expensive, time consuming, inclined to mistakes and complex in orchestration solution.
-
-\newpage
-\subsection{A unified control and data plane}
-Networking is a constantly developing constituent of the computer science and has played a vast role in its necessity and spreading.
-Someone would expect that administering networks is a straight-forward and automated task and innovation scenarios can be easily tested and employed.
-However, that's not the case\ldots \\
-\indent 
-
-
-Split those two
-\\Proprietary technologies, lack of APIs (programmable interfaces) or proper abstractions, non-scalable, inflexible, and troublesome to learn combine administer
-\\Complexity because of many discortant developed protocols
-\\Stops innovation and agility in network architecture development
-\\Does not cope well with mobile users, server virtualization, cloud services
-\\Today’s applications access different databases and servers, creating a flurry of “east-west” machine-to-machine traffic before returning data to the end user device in the classic “north-south” traffic pattern.
-\\Require device-level management and manual processes (time! money! availability! errors!)
-\\resolve newly observed, constantly arising problems in the current Internet?
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\section{Importance of the Problem}
-New solutions copy the current stack so changes should be made as soon as possible
-\\Necessary benefits for users (multiplicity and dynamism) and for developers (easy, time and money saving, walk through)
-\\Administrators must have a better control over the network
-\\Need for experimentation
-\\Datacenter example
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\thispagestyle{empty}
-\phantomsection
-\addcontentsline{toc}{part}{Service-Centric Networking}
-{\Huge \bf \noindent SERVICE-CENTRIC\\[0.2cm] NETWORKING}
-\newpage
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\section{Networked world}
-We have far passed the individuality of monads. \emph{We achieve more in groups than we can ever achieve by ourselves. And co-operative interactions are the hallmark of all major evolutionary leap} \cite{Christakis2011}. We rely on our relationships in like manner we slot ourselves within a community. We have communication protocols. We go after passing on our message. We understand that through communicating (from Latin \emph{comm\={u}nic\={a}re}, meaning "to share") with the right intermediaries we finally reach the group of those who can offer the services we want.\\
-\indent This is no different from how we understand machine networks.
-A eleutheri/euruteri analogy of users and providers, an abstract[TODO] of a client-server architecture.
-Because, after all the reason we use networks is to get services.
-It is not that we want to connect to a specific machine with 12 (for the moment) dot-separated digits followed by a number in the range of 0-65534.\\
-\indent Sometimes we might want to know a specific piece of information; may it be a web page, a video, a JSON document.
-Even that request, can well fit in the generalized concept of services.
-Therefore content delivery can be theorithei as yet another example of a service \cite{Braun2011}.\\
-\indent Nowadays like never before, computer networks are a great resource for finding solutions in our problems.
-It would not be a yperboli to defend that we live continuously connected, approvechar services via multiple machines and through different networks.
-Even a single mobile device can paradeigmatisei lot to this complexity, with Wifi and 4G interfaces enallasontai breaking ws apotelesma each time the communication channels.\\
-
-\subsection{Modern consumer networks}
-512kbps download vs 128kbps upload speed.
-This was the killer plan in the beginning of the ADSL era.
-At a ratio of 4:1, ISPs \nomenclature{ISP}{Internet Service Provider} had pointed out a basic characteristic of the Internet: \emph{as a user you are expected to consume rather than offer a service}.\\
-\indent Reflecting the way to (kapitalistiko) system is working in the real world, 
-
-
-\subsection{Metropolitan and P2P networks}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Chapter: Service-Centric Networking
+\chapterpage{Service-Centric Networking}{SERVICE-CENTRIC\\[0.2cm] NETWORKING}
+\input{networked_world.tex}
 \newpage
 \section{Service-Centric Networking Principles}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\section{The Serval Networking Architecture}
 \input{serval.tex}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\thispagestyle{empty}
-\phantomsection
-\addcontentsline{toc}{part}{Relative Bibliography}
-{\Huge \bf \noindent RELATIVE BIBLIOGRAPHY}
-\newpage
-
+% Chapter: Relative Bibliography
+\chapterpage{Relative Bibliography}{RELATIVE BIBLIOGRAPHY}
 \section{Review of relative bibliography}
 \label{sec:reviewbibliography}
 ServalDHT is a multifaceted architecture that combines ideas from a wide spectrum of topics, including but no limited to Large Scale Network Architectures, Network Protocol Layers, Service-Centric Networking, Software Defined Networking, Distributed Hash Table algorithms and security issues of their various implementations, Peer-To-Peer Lookup Services as a replacement to legacy DNS etc.
 Therefore references should contain an adequate number of publications on all those themes.\\
 \indent The publications that have been used so far as a source of information follow in section 7.
 Brief summaries can be found in Appendix at the end of the report.
-
-
 \subsection{Transport Layer - Decoupling a Host Identity from its location}
 \subsubsection{HIP}
 \subsubsection{DOA}
@@ -290,14 +169,8 @@ Brief summaries can be found in Appendix at the end of the report.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\thispagestyle{empty}
-\phantomsection
-\addcontentsline{toc}{part}{Service-Aware Networking}
-{\Huge \bf \noindent SERVICE-AWARE\\[0.2cm] NETWORKING}
-\newpage
-
+% Chapter: Service-Aware Networking
+\chapterpage{Service-Aware Networking}{SERVICE-AWARE\\[0.2cm]NETWORKING}
 \section{Rethinking the Internet experience}
 %I HAVE A DREAM
 Cloud computing
@@ -310,8 +183,6 @@ Cloud computing
 \\mobility and multihoming
 \\independent from organizations
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \section{Service-centric architectures and SDN}
 A well thought Service centric architecture provides two things
@@ -322,6 +193,7 @@ a service-aware control plane
 \centering
 \phantomsection
 \includegraphics[scale=0.6]{figures/ECCP_sm}
+\label{fig:EECP_sm}
 \caption[The ECCP state machine]{The ECCP \cite{Arye2012} state machine.}
 \end{figure}
 
@@ -339,15 +211,11 @@ larger scale service-level routing
 Scenario:
 service registration as policy
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \section{Service-Aware Networking and Cloud Networks}
 How can we take advantage of the above mentioned results in cloud networks?
 why cloud fits the description
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \section{Introduction to the Proposed Solution}
 User Serval as it is, but with a Distributed Service Resolution Service
@@ -368,40 +236,10 @@ User Serval as it is, but with a Distributed Service Resolution Service
 \\will enable delegation, load balancing etc as modules (maybe a configuration file?)
 \\Draw a FSM for the SRS \nomenclature{SRS}{Service Resolution Service} (http://madebyevan.com/fsm/)
 
+\input{future_research.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\section{Future Research}
-1. Implement Service Controller (compatible with OpenFlow)
-\\2. Implement ServalDHT SRS
-\\3. Results of deployment in PlanetLab
-\\4. Start preparing an RFC?
-
-\subsection{ServalDHT: Secure-DHT based Service Resolution Service for the Serval architecture}
-\subsubsection{The challenges of private, hierarchical DNS}
-Over time, the Internet has gathered a great power over diverse societies.
-People all around the world are trusting in order to read about the news, form a political opinion, solve problems in their working environment, do market research.
-However, while the Internet continuously affirms its prominent value, it is a surprise how vulnerable it remains to arbitrary (inter)national control and malicious attacks, due to the fact that it is erringly administered by private organizations and its restrained, hierarchical structure. \\
-\indent One of the fundamental components of the the functionality of the Internet is the Domain Name System (DNS).
-It is used to map human readable names of hosts to numerical IP addresses needed for the purpose of locating service providers around the world and effectively routing traffic to them.
-Those identifiers, called domain names, are annually purchased and assigned through the Internet Registry by the private organization ICANN (Internet Corporation for Assigned Names and Numbers).
-In addition to being peremptory, this domination also grants to ICANN the privilege of overseeing the content of Internet, by cutting out or declining registration to "undesirable" domains.
-Nevertheless, various incidents of catachresis are being observed the last years, with governments like the Egyptian one that shut down its DNS servers to muzzle the protesters in 2011, and the Chinese which still blacklists certain domains as a mechanism for Internet censorship.\\
-\indent Moreover, the current Domain Name Service is based on an hierarchical architecture, where (domain name, IP) tuples are cached in midway servers.
-This is causing great problems when a service provider has to renew its IP address, because even if a DNS root server is updated, users still get the old cached IP address yet after hours.
-This time delay can increase to days in cases where recursive DNS servers do not follow the specified TTL values for their cached entries.
-Consequently, hosts are restrained from taking advantage of functionality like multihoming and (virtual machine) migration.
-For the same reason, in cases of machine failure, the failover will take a long time, returning in the meanwhile a server unreachable response. \\
-\indent Besides, inevitably imitating the hierarchical architecture for domain resolution, autonomous networks must have exclusive, trusted machines offering an analogous service all the time.
-This is not always desired, for example in Metropolitan Area Networks (MAN) \nomenclature{MAN}{Metropolitan Area Networks} where ranking does not make sense.\\
-\indent Other problems related to DNS bear upon the lack of a widely adopted protocol to correctly verify the real identity of service hosts.
-DNS has been proved fallible to various attacks, like (Distributed) Denial of Service attacks (known as DDoS \nomenclature{DDoS}{Distributed Denial of Service} and DoS \nomenclature{DoS}{Denial of Service} attacks), Cache Poisoning (or DNS Spoofing) etc., which aim on deliberately redirecting requests to malevolent hosts.
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bibliography
 \newpage
 \phantomsection
 \addcontentsline{toc}{part}{Bibliography}
@@ -412,105 +250,9 @@ DNS has been proved fallible to various attacks, like (Distributed) Denial of Se
 \renewcommand{\refname}{}
 \bibliography{bibliography}
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\pagestyle{empty}
-\phantomsection
-\addcontentsline{toc}{part}{Appendix}
-{\Huge \bf \noindent APPENDIX}
-\newpage
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\phantomsection
-\addcontentsline{toc}{section}{A. Presentation}
-{\Huge \bf \noindent A. PRESENTATIONS}
-
-
-\newpage
-\phantomsection
-\addcontentsline{toc}{subsection}{A.1 ServalDHT - Secure DHT based Service Resolution Service}
-\label{sec:servaldhtpres}
-{\huge \bf \noindent A.1 ServalDHT - Secure DHT\\[0.2cm] based Service Resolution Service}
-\includepdf[pages={-}]{ServalDHT-Pres2.pdf}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\phantomsection
-\addcontentsline{toc}{section}{B. Source Code}
-\label{sec:sourcecode}
-{\Huge \bf \noindent B. SOURCE CODE}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\phantomsection
-\addcontentsline{toc}{subsection}{B.1 nginx Serval port}
-\label{sec:nginxport}
-{\huge \bf \noindent B.1 nginx Serval port}\\[0.5cm]
-\textbf{File:} ports/nginx/nginx-1.2.9-integrated-serval.patch\\
-\textbf{Description:} Patch nginx version 1.2.9 to use Serval active sockets. Based on nginx\_1.2.9\_serval\_fqdn branch.\\
-\textbf{Instructions: }
-\begin{enumerate} \itemsep1pt \parskip0pt 
-\parsep0pt
-	\item Apply the patch using git
-	\item Copy libraries from serval/include to a path included in the search path of your compiler (normally that should be /usr/local/include/)
-	\item Configure nginx with serval (ports/nginx/configure --with-serval)
-	\item Make sure configure script found netinet/serval.h library and can build AF\_SERVAL
-	\item If everything is fine, you should be able to see "+ using serval active sockets" in the configuration summary
-	\item Compile with make and then execute make install
-	\item Edit nginx configuration file (by default /usr/local/nginx/conf/nginx.conf) and uncomment the virtual host configured for the serval architecture
-	\item Restart nginx and now you can accept both AF\_INET and AF\_SERVAL requests
-	\item nginx Service ID is 8\\[0.5cm]
-\end{enumerate}
-\lstinputlisting[language=diff]{source_code/nginx-1.2.9-integrated-serval.patch}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\phantomsection
-\addcontentsline{toc}{subsection}{B.2 Wireshark Lua Serval Dissector}
-{\huge \bf \noindent B.2 Wireshark Lua Serval Dissector}\\[0.5cm]
-\textbf{File:} serval/src/serval\_wireshark\_dissector.lua\\
-\textbf{Description:} Wireshark dissector for the Serval protocol (IPPROTO\_SERVAL 144).\\
-\textbf{Instructions: }
-\begin{enumerate} \itemsep1pt \parskip0pt 
-\parsep0pt
-	\item Make sure Lua is enabled in wireshark's global configuration (\href{http://wiki.wireshark.org/Lua}{Wireshark wiki})
-	\item Copy serval/src/serval\_wireshark\_dissector.lua into a plugin directory (default is $\sim$/.wireshark/plugin)\\[0.5cm]
-\end{enumerate}
-\lstinputlisting[language=lua]{source_code/serval_wireshark_dissector.lua}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\phantomsection
-\addcontentsline{toc}{subsection}{B.3 Initialize Serval test node Script}
-{\huge \bf \noindent B.3 Initialize Serval test node Script}\\[0.5cm]
-\textbf{File:} serval/src/init\_servtest.sh\\
-\textbf{Description:} Initialize a Serval testing node.\\
-\textbf{Instructions: }
-\begin{enumerate} \itemsep1pt \parskip0pt 
-\parsep0pt
-	\item You might want to set the executable bit (chmod +x init\_servtest.sh)
-	\item Execute the script with superuser privileges
-	\item View help with \texttt{-}h\\[0.5cm]
-\end{enumerate}
-\lstinputlisting[style=BashColor]{source_code/init_servtest.sh}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\phantomsection
-\addcontentsline{toc}{subsection}{B.4 HTTP Client}
-{\huge \bf \noindent B.4 HTTP Client}\\[0.5cm]
-\textbf{File:} serval/src/test/http\_client.c\\
-\textbf{Description:} HTTP client that works both with AF\_SERVAL and AF\_INET families.\\
-\textbf{Instructions: } Print usage with \texttt{-}h or \texttt{{-}{-}}help\\[0.5cm]
-\lstinputlisting[style=CColor]{source_code/http_client.c}
-
-
+%Appendix
+\chapterpage{Appendix}{APPENDIX}
+\input{appendix.tex}
 
 \end{document}

@@ -1,0 +1,66 @@
+\newpage
+\section{Defining the Problem}
+\label{problemdefinition}
+The concept of Internet has radically changed since its first onset, around half a century ago; millions of multi-homed users, possibly moving across networks, are asking for data and services offered by multiple servers, which can be replicated and situated in various geographical locations.
+Yet, due to legacy reverse compatibility reasons, bureaucracy obstructions and the compulsion of large scale testing and deployment, only a few modifications managed to consolidate and provide the framework for communicating in the largest computer network.
+This situation is leading to erratic band-aids where network administrators and developers overload the existing network abstractions, like the IP \nomenclature{IP}{Internet Protocol} addresses and ports, in order to provide the supplementary functionality needed by a network with dynamic users and where services and data become first-class primitives.\\
+\indent In addition, it is observed that the freedom in Internet is menacingly encircled by equivocal organizations trying to be the ones who will win the authorship and control over its content and autonomy.\\
+\indent In the subsections following we take a closer look to the problems ServalDHT intents to elucidate divided by their main source.
+
+\subsection{An obsolete network stack}
+The network TCP/IP \nomenclature{TCP}{Transmission Control Protocol}\nomenclature{IP}{Internet Protocol} stack which is still used today was designed in an era when a few end hosts where static in specific topological positions, communicating over a sole network interface, accessing services like telnet and ftp.
+The problems by this approach start to accumulate even in the lowest layers, and specifically the Network Layer.
+\paragraph{Network Layer} The Network Layer (or Internet Layer) is responsible for packet forwarding, including routing through intermediate routers, and it does so using a hierarchical IP addressing scheme.
+This bind however of a topological-aware IP address to an interface does not manage well with the notion of mobility, where interfaces are not necessarily tied to a specific network.
+Nevertheless, an IP address cannot identify forever a host since after a disconnection, the IP address is renewed to one that was most likely previously used by another interface of another machine.
+Again, the difficulties in migrating to IPv6 clearly demonstrate the problem with the tight connection of a specific protocol with the programming interfaces (in this case AF\_INET sockets).
+\pagebreak
+\paragraph{Transport Layer} The Transport Layer provides end-to-end communication services for applications within a layered architecture of network components and protocols.
+This is achieved by demultiplexing incoming packets to a socket using the five-tuple (remote IP, remote port, local IP, local port, protocol).
+Since local IP is tied to a unique interface, support for migration or multi-path traffic over multiple network interfaces has to be implemented individually by the protocol or the above layers.
+Never to forget that every time a renewal of IP address occurs the connection has to be reestablished or at least the other end host has to be notified somehow for the new address. Also, without serving any particular reason, the remote IP address and port have to be exposed to the upper layers. \\
+\indent For the case of load balancers, every single packet, even from an already established connection, has to pass through them.
+This results in a need for dedicated software or hardware, proliferates the demanded computational power, and causes unnecessary ''east-west'' machine-to-machine traffic. In large scale networks with nodes distributed in distant topological locations this can evoke router stretching and increased latency times.
+\paragraph{Application Layer}  The Application Layer is an abstraction layer reserved for communication protocols and methods designed for process-to-process communications across an Internet Protocol (IP) computer network.
+Because of the overload of IP addresses and ports on lower layers, the Application Layer has to cache them and handle them too.
+At the same time, violating the principle of software reuse, each application has to implement from scratch all the logic for the additional functionality of modern Internet (migration, multiple clients support, multihoming, load balancing, mobility etc.), in order to offer it to its users.\\
+\indent Another complication in the Application Layer can be detected during the initiation of a connection, and especially during the mapping of a service identifier to an IP address.
+As of now, applications must use out-of-band services like DNS and follow preconcerted conventions before the commencement of the connection.
+Additionally, by caching the IP address of the service provider instead or re-resolving the service identifier, the service provider is constrained in changing its IP address (in cases of migration, machine or network failure, multihoming etc.), as it will result to the termination of the established connections and a slow failover, considering that some time is needed for the DNS distributed servers to be updated and to respond correctly to the clients.
+
+\newpage
+\subsection{The need for Service-Centric Networking}
+In the very early Internet, "calling" the IP address of a machine would get you to one of the killer applications of that time, telnet or ftp.
+Those services were run by a single machine and could not accept simultaneous users.
+However this approach is not common nowadays, when hundreds of users want to search a keyword in their favorite search engine at the same time.
+They do not care about the actual location on the map of the service provider, or which of the machines is serving them accessing a distributed database.
+Neither the database of a search engine is that small that can be stored in a single hard disk nor a sole machine can respond to all those requests.
+Still such services exist and manage well with the always increasing demand. \\
+\indent It is only because developers and network administrators are utilizing middleboxes and implementing intermediate systems in order to overcome the deficiencies caused by the superseded network abstractions.
+However, this comes with a cost.
+Developers have to work with primitive, low-level APIs and to handle many cases of downfalls, needing many costly man-hours, being prone to errors, repeating the same procedure again and again diverging from efficient code writing.
+System administrators have to master all those intermediate systems and make them work agreeably.
+Routers route packets containing both data and network identifiers without the ability of policy governed delegation.
+Replicated service instances run autonomously without a way to directly communicate with each other in a network level.
+Master nodes in clusters shoulder the responsibility of the reinstatement over network failures in a wavering manner.
+Middleboxes evoke large time delays, they need extra hardware, power, space.
+And the list goes on.\\
+\indent To sum up, users nowadays want to access a service or to retrieve some data.
+The abstraction of a service can suit well any use of Internet anyone can think of; watch a video, send an e-mail, make a phone call, remotely access a distant machine. Unfortunately so far there is no standardized practice for effectively developing and administering services, abandoning developers to create their own mercurial quick fixes, an expensive, time consuming, inclined to mistakes and complex in orchestration solution.
+
+\newpage
+\subsection{A unified control and data plane}
+Networking is a constantly developing constituent of the computer science and has played a vast role in its necessity and spreading.
+Someone would expect that administering networks is a straight-forward and automated task and innovation scenarios can be easily tested and employed.
+However, that's not the case\ldots \\
+\indent 
+
+
+Split those two
+\\Proprietary technologies, lack of APIs (programmable interfaces) or proper abstractions, non-scalable, inflexible, and troublesome to learn combine administer
+\\Complexity because of many discortant developed protocols
+\\Stops innovation and agility in network architecture development
+\\Does not cope well with mobile users, server virtualization, cloud services
+\\Today’s applications access different databases and servers, creating a flurry of “east-west” machine-to-machine traffic before returning data to the end user device in the classic “north-south” traffic pattern.
+\\Require device-level management and manual processes (time! money! availability! errors!)
+\\resolve newly observed, constantly arising problems in the current Internet?
