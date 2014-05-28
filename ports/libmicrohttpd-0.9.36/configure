@@ -13605,7 +13605,7 @@ done
 
 
 # Check for optional headers
-for ac_header in sys/types.h sys/time.h sys/msg.h netdb.h netinet/in.h netinet/tcp.h time.h sys/socket.h sys/mman.h arpa/inet.h sys/select.h poll.h search.h
+for ac_header in sys/types.h sys/time.h sys/msg.h netdb.h netinet/in.h netinet/tcp.h time.h sys/socket.h sys/mman.h arpa/inet.h sys/select.h poll.h search.h netinet/serval.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -13913,6 +13913,44 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_inet6" >&5
 $as_echo "$have_inet6" >&6; }
+
+# Serval Active Sockets
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Serval" >&5
+$as_echo_n "checking for Serval... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#if HAVE_NETINET_SERVAL_H
+#include <netinet/serval.h>
+#endif
+
+int
+main ()
+{
+
+struct sockaddr_sv	ssv;
+int af=AF_SERVAL;
+ssv.sv_family = AF_SERVAL;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+have_serval=yes;
+
+$as_echo "#define HAVE_SERVAL 1" >>confdefs.h
+
+
+else
+
+have_serval=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_serval" >&5
+$as_echo "$have_serval" >&6; }
 
 # TCP_CORK and TCP_NOPUSH
 ac_fn_c_check_decl "$LINENO" "TCP_CORK" "ac_cv_have_decl_TCP_CORK" "#include <netinet/tcp.h>

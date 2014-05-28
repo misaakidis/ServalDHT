@@ -121,6 +121,9 @@
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#if HAVE_NETINET_SERVAL_H
+#include <netinet/serval.h>
+#endif
 #if HAVE_TIME_H
 #include <time.h>
 #endif

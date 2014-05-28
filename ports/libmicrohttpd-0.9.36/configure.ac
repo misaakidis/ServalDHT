@@ -311,7 +311,7 @@ fi
 AC_CHECK_HEADERS([fcntl.h math.h errno.h limits.h stdio.h locale.h sys/stat.h sys/types.h pthread.h],,AC_MSG_ERROR([Compiling libmicrohttpd requires standard UNIX headers files]))
 
 # Check for optional headers
-AC_CHECK_HEADERS([sys/types.h sys/time.h sys/msg.h netdb.h netinet/in.h netinet/tcp.h time.h sys/socket.h sys/mman.h arpa/inet.h sys/select.h poll.h search.h])
+AC_CHECK_HEADERS([sys/types.h sys/time.h sys/msg.h netdb.h netinet/in.h netinet/tcp.h time.h sys/socket.h sys/mman.h arpa/inet.h sys/select.h poll.h search.h netinet/serval.h])
 AM_CONDITIONAL([HAVE_TSEARCH], [test "x$ac_cv_header_search_h" = "xyes"])
 
 AC_CHECK_MEMBER([struct sockaddr_in.sin_len],
@@ -431,6 +431,24 @@ AC_DEFINE([HAVE_INET6], [1], [Provides IPv6 headers])
 have_inet6=no
 ])
 AC_MSG_RESULT($have_inet6)
+
+# Serval Active Sockets
+AC_MSG_CHECKING(for Serval)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#if HAVE_NETINET_SERVAL_H
+#include <netinet/serval.h>
+#endif
+]], [[
+struct sockaddr_sv	ssv;
+int af=AF_SERVAL;
+ssv.sv_family = AF_SERVAL;
+]])],[
+have_serval=yes;
+AC_DEFINE([HAVE_SERVAL], [1], [Provides Serval headers])
+],[
+have_serval=no
+])
+AC_MSG_RESULT($have_serval)
 
 # TCP_CORK and TCP_NOPUSH
 AC_CHECK_DECLS([TCP_CORK, TCP_NOPUSH], [], [], [[#include <netinet/tcp.h>]])

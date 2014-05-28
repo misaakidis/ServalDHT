@@ -178,7 +178,7 @@ MHD_get_master (struct MHD_Daemon *daemon)
 struct MHD_IPCount
 {
   /**
-   * Address family. AF_INET or AF_INET6 for now.
+   * Address family. AF_INET, AF_INET6 or AF_SERVAL for now.
    */
   int family;
 
@@ -196,6 +196,12 @@ struct MHD_IPCount
      * IPv6 address.
      */
     struct in6_addr ipv6;
+#endif
+#if HAVE_SERVAL
+    /**
+     * Serval address
+     */
+    struct service_id addr_sv;
 #endif
   } addr;
 
@@ -285,6 +291,15 @@ MHD_ip_addr_to_key (const struct sockaddr *addr,
       memcpy (&key->addr.ipv6, &addr6->sin6_addr, sizeof(addr6->sin6_addr));
       return MHD_YES;
     }
+#endif
+
+#if HAVE_SERVAL
+  /* Serval serviceIDs */
+  if (sizeof (struct sockaddr_sv) == addrlen) {
+	  const struct sockaddr_sv *addrsv = (const struct sockaddr_sv*) addr;
+	  key->family = AF_SERVAL;
+	  memcpy (&key->addr.addr_sv, &addrsv->sv_srvid, sizeof(addrsv->sv_srvid));
+  }
 #endif
 
   /* Some other address */
