@@ -24,9 +24,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \phantomsection
-\addcontentsline{toc}{subsection}{B.1 nginx Serval patch integration}
+\addcontentsline{toc}{subsection}{B.1 nginx Serval integration}
 \label{sec:nginxport}
-{\huge \bf \noindent B.1 nginx Serval patch integration}\\[0.5cm]
+{\huge \bf \noindent B.1 nginx Serval integration}\\[0.5cm]
 \textbf{File:} ports/nginx/nginx-1.2.9-integrated-serval.patch\\
 \textbf{Description:} Integrate Serval patch nginx version 1.2.9 in the build procedure.\\
 \textbf{Instructions: }
@@ -81,7 +81,7 @@
 \addcontentsline{toc}{subsection}{B.4 HTTP Client}
 {\huge \bf \noindent B.4 HTTP Client}\\[0.5cm]
 \textbf{File:} serval/src/test/http\_client.c\\
-\textbf{Description:} HTTP client that works both with AF\_SERVAL and AF\_INET families.\\
+\textbf{Description:} HTTP client that works with both AF\_SERVAL and AF\_INET families.\\
 \textbf{Instructions: } Print usage with \texttt{-}h or \texttt{{-}{-}}help\\[0.5cm]
 \lstinputlisting[style=CColor]{source_code/http_client.c}
 
@@ -91,7 +91,8 @@
 \addcontentsline{toc}{subsection}{B.5 libmicrohttpd Serval port}
 {\huge \bf \noindent B.5 libmicrohttpd Serval port}\\[0.5cm]
 \textbf{File:} ports/libmicrohttpd-0.9.36/libmicrohttpd\_serval.patch\\
-\textbf{Description:} Patch libmicrohttpd version 0.9.36 to use Serval active sockets.\\
+\textbf{Description:} Patch libmicrohttpd version 0.9.36 to use Serval active sockets. Libmicrohttpd is a small C library that can be included in other C applications and provide HTTP server functionality.\\
+\url{https://www.gnu.org/software/libmicrohttpd/}\\
 \textbf{Instructions: }
 \begin{enumerate} \itemsep1pt \parskip0pt 
 \parsep0pt

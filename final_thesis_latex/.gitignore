@@ -14,5 +14,8 @@
 *.ind
 *.nlo
 *.nls
-
+*.make
+*.d
+*.nlg
+*.cookie
 *~
