@@ -1,0 +1,187 @@
+diff --git a/auto/options b/auto/options
+index 6c3a4db..2a9fa0e 100644
+--- a/auto/options
++++ b/auto/options
+@@ -46,6 +46,7 @@ USE_THREADS=NO
+ 
+ NGX_FILE_AIO=NO
+ NGX_IPV6=NO
++NGX_SERVAL=NO
+ 
+ HTTP=YES
+ 
+@@ -189,6 +190,7 @@ do
+ 
+         --with-file-aio)                 NGX_FILE_AIO=YES           ;;
+         --with-ipv6)                     NGX_IPV6=YES               ;;
++        --with-serval)					 NGX_SERVAL=YES	;;
+ 
+         --without-http)                  HTTP=NO                    ;;
+         --without-http-cache)            HTTP_CACHE=NO              ;;
+@@ -345,6 +347,7 @@ cat << END
+ 
+   --with-file-aio                    enable file AIO support
+   --with-ipv6                        enable IPv6 support
++  --with-serval						 enable support for Serval architecture
+ 
+   --with-http_ssl_module             enable ngx_http_ssl_module
+   --with-http_realip_module          enable ngx_http_realip_module
+diff --git a/auto/summary b/auto/summary
+index dcebec9..d207c3c 100644
+--- a/auto/summary
++++ b/auto/summary
+@@ -75,6 +75,10 @@ case $NGX_LIBATOMIC in
+     *)     echo "  + using libatomic_ops library: $NGX_LIBATOMIC" ;;
+ esac
+ 
++if [ $NGX_SERVAL = YES ]; then
++    echo "  + using serval active sockets"
++fi
++
+ echo
+ 
+ 
+diff --git a/auto/unix b/auto/unix
+index b0a0e4c..57d3d01 100755
+--- a/auto/unix
++++ b/auto/unix
+@@ -496,6 +496,18 @@ if [ $NGX_IPV6 = YES ]; then
+     . auto/feature
+ fi
+ 
++if [ $NGX_SERVAL = YES ]; then
++    ngx_feature="AF_SERVAL"
++    ngx_feature_name="NGX_HAVE_SERVAL"
++    ngx_feature_run=no
++    ngx_feature_incs="#include <netinet/serval.h>"
++    ngx_feature_path=
++    ngx_feature_libs=
++    ngx_feature_test="struct sockaddr_sv	ssv;
++                      ssv.sv_family = AF_SERVAL;"
++    . auto/feature
++fi
++
+ 
+ ngx_feature="setproctitle()"
+ ngx_feature_name="NGX_HAVE_SETPROCTITLE"
+diff --git a/conf/nginx.conf b/conf/nginx.conf
+index 3bb3389..c6ab439 100644
+--- a/conf/nginx.conf
++++ b/conf/nginx.conf
+@@ -91,6 +91,19 @@ http {
+     #        index  index.html index.htm;
+     #    }
+     #}
++    
++    
++    # another virtual host configured for the serval architecture
++    #
++    #server {
++    #    listen       serval:80;
++    #    server_name  localhost;
++
++    #    location / {
++    #        root   html;
++    #        index  index.html index.htm;
++    #    }
++    #}
+ 
+ 
+     # HTTPS server
+diff --git a/src/core/ngx_config.h b/src/core/ngx_config.h
+index 6384fb5..888587c 100644
+--- a/src/core/ngx_config.h
++++ b/src/core/ngx_config.h
+@@ -43,11 +43,6 @@
+ 
+ #endif
+ 
+-#if (NGX_HAVE_NETINET_SERVAL_H)
+-#define NGX_HAVE_SERVAL 1
+-#include <netinet/serval.h>
+-#endif
+-
+ #ifndef NGX_HAVE_SO_SNDLOWAT
+ #define NGX_HAVE_SO_SNDLOWAT     1
+ #endif
+diff --git a/src/core/ngx_inet.c b/src/core/ngx_inet.c
+index 674be45..2fb0b82 100644
+--- a/src/core/ngx_inet.c
++++ b/src/core/ngx_inet.c
+@@ -178,9 +178,9 @@ ngx_int_t
+ ngx_serval_addr(u_char *text, size_t len, u_char *addr)
+ {
+ 
+-  //ngx_int_t i = 0;
++	ngx_int_t i = 0;
+     struct service_id *srvid = (struct service_id *)addr;
+-    /*        
++       
+     while (1) {
+ 	u_char hex32[9];
+ 	
+@@ -194,9 +194,11 @@ ngx_serval_addr(u_char *text, size_t len, u_char *addr)
+ 
+ 	len -= 8;
+     }
+-    */
+-    if (srvid != NULL && serval_pton((const char*)text, srvid->s_sid))
+-      return NGX_OK;
++
++    if (srvid != NULL && serval_pton((const char*)text, srvid->s_sid)) {
++		printf("Serval service-id: %s\n", service_id_to_str(srvid));
++		return NGX_OK;
++	}
+     else
+       return NGX_ERROR;
+ }
+@@ -968,7 +970,7 @@ ngx_parse_serval_url(ngx_pool_t *pool, ngx_url_t *u)
+     u->host.len = len + 2;
+     u->host.data = host - 1;
+ 
+-    if (ngx_serval_addr(host, len, (u_char *)ssv->sv_srvid.s_sid) != NGX_OK) {
++    if (ngx_serval_addr(host, len, ssv->sv_srvid.s_sid) != NGX_OK) {
+         u->err = "invalid service ID";
+         return NGX_ERROR;
+     }
+diff --git a/src/http/ngx_http.c b/src/http/ngx_http.c
+index e792955..0f6f3bf 100644
+--- a/src/http/ngx_http.c
++++ b/src/http/ngx_http.c
+@@ -1967,7 +1967,7 @@ ngx_http_add_serviceid(ngx_conf_t *cf, ngx_http_port_t *hport,
+ 
+         ssv = &addr[i].opt.u.sockaddr_sv;
+         memcpy(&sids[i].srvid, &ssv->sv_srvid, sizeof(ssv->sv_srvid));
+-	//	sids[i].prefix_bits = ssv->sv_prefix_bits;
++	sids[i].prefix_bits = ssv->sv_prefix_bits;
+         sids[i].conf.default_server = addr[i].default_server;
+ #if (NGX_HTTP_SSL)
+         sids[i].conf.ssl = addr[i].opt.ssl;
+diff --git a/src/http/ngx_http_variables.c b/src/http/ngx_http_variables.c
+index 0171548..b8e2e9d 100644
+--- a/src/http/ngx_http_variables.c
++++ b/src/http/ngx_http_variables.c
+@@ -1081,7 +1081,7 @@ ngx_http_variable_binary_remote_addr(ngx_http_request_t *r,
+         v->valid = 1;
+         v->no_cacheable = 0;
+         v->not_found = 0;
+-        v->data = (u_char *)ssv->sv_srvid.s_sid;
++        v->data = ssv->sv_srvid.s_sid;
+ 
+         break;
+ #endif
+diff --git a/src/os/unix/ngx_linux_config.h b/src/os/unix/ngx_linux_config.h
+index 2834032..0d40a36 100644
+--- a/src/os/unix/ngx_linux_config.h
++++ b/src/os/unix/ngx_linux_config.h
+@@ -96,6 +96,10 @@ typedef struct iocb  ngx_aiocb_t;
+ 
+ #define NGX_LISTEN_BACKLOG        511
+ 
++#if (NGX_HAVE_SERVAL)
++#include <netinet/serval.h>
++#endif
++
+ 
+ #ifndef NGX_HAVE_SO_SNDLOWAT
+ /* setsockopt(SO_SNDLOWAT) returns ENOPROTOOPT */

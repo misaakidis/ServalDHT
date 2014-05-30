@@ -23,7 +23,7 @@ For that reason Serval introduces service names, or \emph{serviceIDs}.\\
 \indent ServiceIDs are large (256 bit long) strings, that correspond to a service, or a group of services.
 Part of Serval packets as a Service Access Extension header in the synchronization process (SYN and SYN-ACK flags in ECCP state machine figure \ref{fig:ECCP_st}), serviceIDs assist in resolution and service-level routing.
 Furthermore they are used as persistent, global identifiers for easier handling of replicated services, virtual machine migrations or mobile hosts, when there is a need for end-point signaling.\\
-\indent What is unique about Serval's abstraction of service identifiers is that since they are managed by the SAL, they are positioned below the transport layer.
+\indent What is unique about Serval's adifferencebstraction of service identifiers is that since they are managed by the SAL, they are positioned below the transport layer.
 Jointly with Serval active sockets, the abstraction of service names obscures host identifiers (IP and Port) from the application layer, but stills offers powerful, familiar APIs\nomenclature{API}{Application Programming Interface} to networked application developers.
 \indent service granularity (block allocation) \\
 \indent To sum up, in an elegant way serviceIDs promote services to the principal entities in the network, by giving applications intermediate access to the service control plane and a
@@ -59,41 +59,66 @@ This opens new windows for experimentation and innovation.
 \subsubsection{Service Controller}
 
 \subsubsection{Service Access Layer}
-
+extremes
 \subsubsection{Serval Packets Structure}
 
 \input{ports.tex}
 
 \subsection{Profiling the Serval prototype implementation}
 Among the admirable headliners of Serval is the working prototype version of the proposed architecture.
-In more than 28000 lines of code\footnote{Serval is an Open Source project, hosted at a public repository\\ \url{https://github.com/princeton-sns/serval/}.} covering functionality of the Service Access Layer (both in userlevel operation and as a Linux kernel module), bindings for multiple programming languages, a translator, libraries and examples for writing Serval compatible applications, and with a reported throughput comparable to the unmodified TCP/IP stack, it is clearly showcased the feasibility of the solution.\\
-\indent In this section we are profiling the prototype in regard to the following parameters:
+In more than 28000 lines of code\footnote{Serval is an Open Source project, hosted at a public repository\\ \url{https://github.com/princeton-sns/serval/}.} covering functionality of the Service Access Layer (both in userlevel operation and as a Linux kernel module), bindings for multiple programming languages, a translator, libraries and examples for writing Serval compatible applications, and with a reported throughput comparable to the unmodified TCP/IP stack, it is clearly showcased the feasibility of the solution.
+\\ \indent In this section we are profiling the prototype in regard to the following parameters:
 \begin{enumerate}
-  \item Memory Management
   \item CPU Instructions and Cycles
-  \item System Calls times
+  \item System Call execution times
   \item Execution time needed for the completion of a numbered iteration of requests
-  \item The sum of requests that can be satisfied within a given timeframe
+  \item Number of packers per request, bytes sent, packet structure
 \end{enumerate}
-Then we will be graphically presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family. The first four tests have not been published before.
+Then we will be presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family.
 
 \paragraph{} Output was obtained on a HP Prodesk 600 G1 --Intel(R) Core(TM) i5-4570 @ 3.20GHZ, 4GB RAM-- machine running Ubuntu 11.04 (Natty Narwahl) kernel version 2.6.38-16-generic (rebuilt with debug symbols).
-\\ \indent For the tests with gprof, valgrind, oprofile and strace Serval module and http\_client were built with debug symbols.
-Extra for gprof testing, Serval was built with CFLAGS, LDFLAGS and CPPFLAGS equal to "-pg" .
+\\ \indent The profiling tools we used include gprof, perf, oprofile, valgrind, strace, zoom and google performance tools.
+For the tests with gprof, valgrind, oprofile and strace, Serval module and http\_client were built with debug symbols.
+Extra, for gprof testing, Serval was built with CFLAGS, LDFLAGS and CPPFLAGS equal to "-pg" .
 \\ \indent For the measurements we ported libmicrohttpd to use Serval active sockets.
 Also, we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call.
 For each case, we used the INET and Serval version of librehttpd and http\_client respectively.
-Therefore, besides the connectivity parts, both INET and AF\_SERVAL versions are working with the same logic in accepting and processing requests.
+Therefore, besides the connectivity parts, both INET and SERVAL versions are working with the same logic in creating, exchanging and processing requests.
 This way we believe the tests can give unbiased results, which would not be the case if for example we used apache for INET and libmicrohttpd for SERVAL requests.
-\\ \indent Source code of libmicrohttpd and http\_client, plus the integration of Serval patch in the build procedure of nginx, can be found in the Appendix (\ref{sec:appendix}), and benchmark results in the public repository \footnote{\url{https://github.com/misaakidis/ServalDHT}}.
+\\ \indent Source code of libmicrohttpd and http\_client, along with the integration of Serval patch in the build procedure of nginx, can be found in the Appendix (\ref{sec:appendix}).
+Benchmark results are published in the ServalDHT repository \footnote{\url{https://github.com/misaakidis/ServalDHT}}.
 
-\iffalse
-gprof
-perf
-1) memory (oprofile)
-2) CPU cycles (callgrind)
-3) system calls time (strace)
-4) timed execution of 1000 times
-5) requests per second
-6) Number of packers per request, bytes sent, packet structure
-\fi
+\paragraph{Serval's performance in the worst case scenario}
+In a network architecture benchmarking what matters the most is its total throughput under a stress test.
+In other words, the data rate of information (both headers and payload) and the number of packets that can be processed during a specific time frame.
+An excellent tool for this case, \emph{iperf}, proved Serval's TCP throughput to be very close to the original TCP's one, almost fully utilizing a GigE interface. \nomenclature{GigE}{Gigabit Ethernet}
+The authors explain that the existing small difference is due to missing optimizations in Serval's prototype.
+\\ \indent We are examining Serval from a completely different perspective.
+We dive into the implementation of SAL and serval.ko module and the overhead in using the Serval APIs.
+And we do so in the worst possible scenario for an architecture that is establishing its own identifiers in the end host stacks.
+\\ \indent It is SAL's responsibility to create the flows and synchronize the sockets in either side \footnote{Specifically for TCP, Serval is using the functionality that corresponds only to the ESTABLISHED state.}.
+This means that when binding an active socket to a serviceID, the SAL must insert an entry into the flow table, register the service in the service table with a DEMUX rule and propagate the service registration to the network (may it be an anycast flood or a request to a singe service router).
+Also, when connecting to a service, SAL must first convert a service name to a serviceID, resolve the serviceID, and finally establish a connection using CONTROL and SERVICE headers.
+Correspondingly, closing a connection requires the exchange of packets with CONTROL headers.
+In both cases, must-have checks like whether a serviceID is of an appropriate format, are more computational effort to the perquisite ones.
+\\ \indent Once a connection has been established, the only significant overhead is the addition of a 12 bytes Serval header with the source and destination flowIDs, and the demultiplexing of incoming packets.
+We can presume for those reasons, that Serval (and any other relative architecture) is struggling during the process of establishing a connection.
+\\ \indent The case scenario we are testing is consisted of a client that connects to a service and requests information that can fit within a single response packet.
+Since both the server and the client are running in the same machine, we can presume that the available bandwidth exempts network "links" from being responsible for a bottleneck.
+The results show how well the Serval implementation can manage when it is pushed to the limit.
+
+\paragraph{CPU Instructions and Cycles}
+
+\begin{table}
+\begin{center}
+  \begin{tabular}{lcc}
+  	\toprule
+  		&	PF\_INET & PF\_SERVAL \\
+  	\midrule
+    Instructions	&	1 	&	2	\\
+    CPU Cycles	&	4	&	5	\\
+    \bottomrule
+  \end{tabular}
+  \caption[Test]{A normal caption}
+\end{center}
+\end{table}
