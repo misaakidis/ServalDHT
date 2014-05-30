@@ -1,0 +1,28 @@
+Removing leading "/", converting / to 
+Closing socket...
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+  -nan    0.000000           0         1           read
+  -nan    0.000000           0         8           write
+  -nan    0.000000           0         2           open
+  -nan    0.000000           0         3           close
+  -nan    0.000000           0         1           execve
+  -nan    0.000000           0         1           getpid
+  -nan    0.000000           0         3         3 access
+  -nan    0.000000           0         3           brk
+  -nan    0.000000           0         1           munmap
+  -nan    0.000000           0         4           mprotect
+  -nan    0.000000           0         3           rt_sigaction
+  -nan    0.000000           0         7           mmap2
+  -nan    0.000000           0         3           fstat64
+  -nan    0.000000           0         1           set_thread_area
+  -nan    0.000000           0         1           socket
+  -nan    0.000000           0         1           bind
+  -nan    0.000000           0         1           connect
+  -nan    0.000000           0         1           getsockname
+  -nan    0.000000           0         1           getpeername
+  -nan    0.000000           0         1           send
+  -nan    0.000000           0         2           recv
+  -nan    0.000000           0         1           setsockopt
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000                    50         3 total

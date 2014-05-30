@@ -13,7 +13,7 @@ The problems by this approach start to accumulate even in the lowest layers, and
 \paragraph{Network Layer} The Network Layer (or Internet Layer) is responsible for packet forwarding, including routing through intermediate routers, and it does so using a hierarchical IP addressing scheme.
 This bind however of a topological-aware IP address to an interface does not manage well with the notion of mobility, where interfaces are not necessarily tied to a specific network.
 Nevertheless, an IP address cannot identify forever a host since after a disconnection, the IP address is renewed to one that was most likely previously used by another interface of another machine.
-Again, the difficulties in migrating to IPv6 clearly demonstrate the problem with the tight connection of a specific protocol with the programming interfaces (in this case AF\_INET sockets).
+Again, the difficulties in migrating to IPv6 clearly demonstrate the problem with the tight binding of a specific protocol with the programming interfaces (in this case AF\_INET sockets).
 \pagebreak
 \paragraph{Transport Layer} The Transport Layer provides end-to-end communication services for applications within a layered architecture of network components and protocols.
 This is achieved by demultiplexing incoming packets to a socket using the five-tuple (remote IP, remote port, local IP, local port, protocol).

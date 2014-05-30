@@ -1,0 +1,52 @@
+     0.000000 execve("./http_client", ["./http_client", "-i", "127.0.0.1"], [/* 39 vars */]) = 0
+     0.000849 brk(0)                    = 0x9581000
+     0.000217 access("/etc/ld.so.nohwcap", F_OK) = -1 ENOENT (No such file or directory)
+     0.000283 mmap2(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb77ae000
+     0.000253 access("/etc/ld.so.preload", R_OK) = -1 ENOENT (No such file or directory)
+     0.000246 open("/etc/ld.so.cache", O_RDONLY) = 3
+     0.000155 fstat64(3, {st_mode=S_IFREG|0644, st_size=66847, ...}) = 0
+     0.000186 mmap2(NULL, 66847, PROT_READ, MAP_PRIVATE, 3, 0) = 0xb779d000
+     0.000127 close(3)                  = 0
+     0.000096 access("/etc/ld.so.nohwcap", F_OK) = -1 ENOENT (No such file or directory)
+     0.000148 open("/lib/i386-linux-gnu/libc.so.6", O_RDONLY) = 3
+     0.000094 read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\220o\1\0004\0\0\0"..., 512) = 512
+     0.000111 fstat64(3, {st_mode=S_IFREG|0755, st_size=1462852, ...}) = 0
+     0.000140 mmap2(NULL, 1473032, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x110000
+     0.000070 mprotect(0x271000, 4096, PROT_NONE) = 0
+     0.000070 mmap2(0x272000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x161) = 0x272000
+     0.000090 mmap2(0x275000, 10760, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x275000
+     0.000076 close(3)                  = 0
+     0.000089 mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb779c000
+     0.000070 set_thread_area({entry_number:-1 -> 6, base_addr:0xb779c8d0, limit:1048575, seg_32bit:1, contents:0, read_exec_only:0, limit_in_pages:1, seg_not_present:0, useable:1}) = 0
+     0.000203 mprotect(0x272000, 8192, PROT_READ) = 0
+     0.000069 mprotect(0x804a000, 4096, PROT_READ) = 0
+     0.000068 mprotect(0x747000, 4096, PROT_READ) = 0
+     0.000060 munmap(0xb779d000, 66847) = 0
+     0.000167 rt_sigaction(SIGTERM, {0x8048a80, [], 0}, NULL, 8) = 0
+     0.000207 rt_sigaction(SIGHUP, {0x8048a80, [], 0}, NULL, 8) = 0
+     0.000211 rt_sigaction(SIGINT, {0x8048a80, [], 0}, NULL, 8) = 0
+     0.000159 fstat64(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 1), ...}) = 0
+     0.000141 mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb77ad000
+     0.000101 write(1, "parsing 127.0.0.1 p=1\n", 22) = 22
+     0.000145 socket(PF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+     0.000160 setsockopt(3, SOL_SOCKET, SO_REUSEADDR, [1], 4) = 0
+     0.000113 write(1, "Connecting to service 127.0.0.1:"..., 35) = 35
+     0.000117 connect(3, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+     0.000300 getsockname(3, {sa_family=AF_INET, sin_port=htons(34398), sin_addr=inet_addr("127.0.0.1")}, [16]) = 0
+     0.000127 write(1, "sock name is 7f00000100000000000"..., 88) = 88
+     0.000112 getpeername(3, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("127.0.0.1")}, [16]) = 0
+     0.000121 write(1, "peer name is 7f00000100000000000"..., 88) = 88
+     0.000103 write(1, "Connected successfully!\n", 24) = 24
+     0.000095 write(2, "Removing leading \"/\", converting"..., 39Removing leading "/", converting / to 
+) = 39
+     0.000241 brk(0)                    = 0x9581000
+     0.000061 brk(0x95a2000)            = 0x95a2000
+     0.000089 send(3, "GET / HTTP/1.0\r\nHost: 127.0.0.1\r"..., 60, 0) = 60
+     0.000159 recv(3, "HTTP/1.0 200 OK\r\nContent-Length:"..., 8192, 0) = 166
+     0.000120 recv(3, "", 8192, 0)      = 0
+     0.000074 write(1, "<html><head><title>libmicrohttpd"..., 166) = 166
+     0.000100 write(1, "<html><head><title>libmicrohttpd"..., 98) = 98
+     0.000091 write(2, "Closing socket...\n", 18Closing socket...
+) = 18
+     0.000086 close(3)                  = 0
+     0.000104 exit_group(0)             = ?

@@ -30,6 +30,7 @@ Jointly with Serval active sockets, the abstraction of service names obscures ho
 And it manages to do so while hiding unneeded abstractions, such as the $<IP, port>$ tuple.
 
 \subsubsection{End-host flow identifiers}
+The other problem Serval is intending to counteract, is the 
 
 \subsection{Service Resolution}
 Those service names in a deeper level get mapped to 
@@ -76,10 +77,12 @@ In more than 28000 lines of code\footnote{Serval is an Open Source code, hosted 
 \end{enumerate}
 Then we will be graphically presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family. The first four tests have not been published before.
 
-\paragraph{} Output was obtained on a HP Prodesk 600 G1 --Intel(R) Core(TM) i5-4570 @ 3.20GHZ, 4GB RAM-- machine running Ubuntu 11.04 (Natty Narwahl) kernel version 2.6.38-16-generic (rebuilt with debug symbols). Serval was built with \texttt{-{}-}enable-debug option for the first three tests.\\
+\paragraph{} Output was obtained on a HP Prodesk 600 G1 --Intel(R) Core(TM) i5-4570 @ 3.20GHZ, 4GB RAM-- machine running Ubuntu 11.04 (Natty Narwahl) kernel version 2.6.38-16-generic (rebuilt with debug symbols).
+For the tests of gprof, valgrind Serval was built with \texttt{-{}-}enable-debug option.
+Also with CFLAGS, LDFLAGS and CPPFLAGS equal to "-pg" for gprof testing.\\
 \indent For the measurements we ported the nginx web server to Serval architecture, integrating the [nginx\_1.2.9\_serval\_fqdn] branch commits from \mbox{sns/Serval} repository into the build procedure.
 Also, we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call.
-Source code of both can be found in the Appendix (\ref{sec:sourcecode}).
+Source code along with benchmark results can be found in the Appendix (\ref{sec:appendix}).
 
 \iffalse
 gprof

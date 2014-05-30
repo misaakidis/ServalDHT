@@ -2,8 +2,7 @@
 \newpage
 \phantomsection
 \addcontentsline{toc}{section}{A. Presentations}
-\label{sec:sourcecode}
-{\Huge \bf \noindent B. PRESENTATIONS}
+{\Huge \bf \noindent A. PRESENTATIONS}
 
 \newpage
 \phantomsection
@@ -91,11 +90,14 @@
 \addcontentsline{toc}{subsection}{B.5 libmicrohttpd Serval port}
 {\huge \bf \noindent B.5 libmicrohttpd Serval port}\\[0.5cm]
 \textbf{File:} ports/libmicrohttpd-0.9.36/libmicrohttpd\_serval.patch\\
-\textbf{Description:} Patch libmicrohttpd version 0.9.36 to use Serval active sockets. Libmicrohttpd is a small C library that can be included in other C applications and provide HTTP server functionality.\\
+\textbf{Description:} Patch libmicrohttpd version 0.9.36 to use Serval active sockets. Libmicrohttpd is a free, small C library that can be included in C and C++ applications and provide HTTP server functionality.\\
 \url{https://www.gnu.org/software/libmicrohttpd/}\\
 \textbf{Instructions: }
 \begin{enumerate} \itemsep1pt \parskip0pt 
 \parsep0pt
-	\item Add\\[0.5cm]
+	\item Include the library in any application, usually as a daemon.
+	\item As a reference use the boilerplates at:\\
+	ports/libmicrohttpd-0.9.36/src/examples
+	\item You might want to test the src/examples/minimal\_example (give as a parameter a random port). It's serviceID is hardcoded and equal to htonl(80), so it can be used with http\_client out of the box.\\[0.5cm]
 \end{enumerate}
 \lstinputlisting[language=diff]{source_code/libmicrohttpd_serval.patch}

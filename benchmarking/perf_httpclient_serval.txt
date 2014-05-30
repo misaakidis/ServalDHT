@@ -1,0 +1,15 @@
+ Performance counter stats for './http_client' (10000 runs):
+
+            72,893 cache-misses             #     27.360 M/sec   ( +-   0.217% )
+            98,862 cache-references         #     37.107 M/sec   ( +-   0.150% )
+             8,514 branch-misses            #      2.444 %       ( +-   0.099% )
+           348,329 branches                 #    130.743 M/sec   ( +-   0.057% )
+         1,864,287 instructions             #      0.212 IPC     ( +-   0.054% )
+         8,799,912 cycles                   #   3302.983 M/sec   ( +-   0.191% )
+               137 page-faults              #      0.051 M/sec   ( +-   0.003% )
+                 0 CPU-migrations           #      0.000 M/sec   ( +-   1.576% )
+                 1 context-switches         #      0.001 M/sec   ( +-   0.349% )
+          2.664232 task-clock-msecs         #      0.948 CPUs    ( +-   0.186% )
+
+        0.002810570  seconds time elapsed   ( +-   0.185% )
+

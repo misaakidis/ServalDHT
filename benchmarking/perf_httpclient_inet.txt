@@ -1,0 +1,15 @@
+ Performance counter stats for './http_client -i 127.0.0.1' (10000 runs):
+
+               685 cache-misses             #      1.667 M/sec   ( +-   1.417% )
+            14,327 cache-references         #     34.858 M/sec   ( +-   0.089% )
+             5,845 branch-misses            #      4.655 %       ( +-   0.144% )
+           125,548 branches                 #    305.468 M/sec   ( +-   0.009% )
+           690,559 instructions             #      0.678 IPC     ( +-   0.009% )
+         1,019,096 cycles                   #   2479.547 M/sec   ( +-   0.062% )
+               136 page-faults              #      0.331 M/sec   ( +-   0.003% )
+                 0 CPU-migrations           #      0.001 M/sec   ( +-   1.812% )
+                 1 context-switches         #      0.003 M/sec   ( +-   0.297% )
+          0.411001 task-clock-msecs         #      0.420 CPUs    ( +-   0.604% )
+
+        0.000977495  seconds time elapsed   ( +-   2.450% )
+
