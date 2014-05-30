@@ -1,0 +1,802 @@
+CPU: Intel Architectural Perfmon, speed 800 MHz (estimated)
+Counted CPU_CLK_UNHALTED events (Clock cycles when not halted) with a unit mask of 0x00 (No unit mask) count 6000
+CPU_CLK_UNHALT...|
+  samples|      %|
+------------------
+      219 100.000 http_client
+	CPU_CLK_UNHALT...|
+	  samples|      %|
+	------------------
+	      167 76.2557 vmlinux
+	       29 13.2420 libc-2.13.so
+	       20  9.1324 ld-2.13.so
+	        3  1.3699 http_client
+
+
+
+
+
+/* 
+ * Command line: opannotate -s -a -x ./http_client 
+ * 
+ * Interpretation of command line:
+ * Output annotated assembly listing with samples
+ * 
+ * CPU: Intel Architectural Perfmon, speed 800 MHz (estimated)
+ * Counted CPU_CLK_UNHALTED events (Clock cycles when not halted) with a unit mask of 0x00 (No unit mask) count 6000
+ */
+               :
+               :/home/sns/ServalDHT/serval/src/test/http_client:     file format elf32-i386
+               :
+               :
+               :Disassembly of section .text:
+               :
+0804905a <client>: /* client total:      1 50.0000 */
+               :	}
+               :	return 0;
+               :}
+               :
+               :static int client(struct in_addr *srv_inetaddr, int port)
+               :{
+               : 804905a:	push   %ebp
+               : 804905b:	mov    %esp,%ebp
+               : 804905d:	push   %ebx
+               : 804905e:	sub    $0xd4,%esp
+               : 8049064:	call   8048a84 <mcount@plt>
+               : 8049069:	mov    0x8(%ebp),%eax
+               : 804906c:	mov    %eax,-0xbc(%ebp)
+               : 8049072:	mov    %gs:0x14,%eax
+               : 8049078:	mov    %eax,-0xc(%ebp)
+               : 804907b:	xor    %eax,%eax
+               :	int sock, ret = EXIT_FAILURE;
+               : 804907d:	movl   $0x1,-0xa4(%ebp)
+               :	union {
+               :		struct sockaddr_sv serval;
+               :		struct sockaddr_in inet;
+               :		struct sockaddr saddr;
+               :	} cliaddr, srvaddr;
+               :	socklen_t addrlen = 0;
+               : 8049087:	movl   $0x0,-0xa8(%ebp)
+               :	unsigned short srv_inetport = (unsigned short)port;
+               : 8049091:	mov    0xc(%ebp),%eax
+               : 8049094:	mov    %ax,-0x9e(%ebp)
+               :	int family = AF_SERVAL;
+               : 804909b:	movl   $0x1c,-0xac(%ebp)
+               :
+               :	memset(&cliaddr, 0, sizeof(cliaddr));
+               : 80490a5:	movl   $0x24,0x8(%esp)
+               : 80490ad:	movl   $0x0,0x4(%esp)
+               : 80490b5:	lea    -0x44(%ebp),%eax
+               : 80490b8:	mov    %eax,(%esp)
+               : 80490bb:	call   8048934 <memset@plt>
+               :	memset(&srvaddr, 0, sizeof(srvaddr));
+               : 80490c0:	movl   $0x24,0x8(%esp)
+               : 80490c8:	movl   $0x0,0x4(%esp)
+               : 80490d0:	lea    -0x68(%ebp),%eax
+               : 80490d3:	mov    %eax,(%esp)
+               : 80490d6:	call   8048934 <memset@plt>
+               :
+               :	if (srv_inetaddr) {
+     1 50.0000 : 80490db:	cmpl   $0x0,-0xbc(%ebp)
+               : 80490e2:	je     8049151 <client+0xf7>
+               :		family = AF_INET;
+               : 80490e4:	movl   $0x2,-0xac(%ebp)
+               :		cliaddr.inet.sin_family = family;
+               : 80490ee:	mov    -0xac(%ebp),%eax
+               : 80490f4:	mov    %ax,-0x44(%ebp)
+               :		cliaddr.inet.sin_port = htons(6767);
+               : 80490f8:	movl   $0x1a6f,(%esp)
+               : 80490ff:	call   8048954 <htons@plt>
+               : 8049104:	mov    %ax,-0x42(%ebp)
+               :		srvaddr.inet.sin_family = family;
+               : 8049108:	mov    -0xac(%ebp),%eax
+               : 804910e:	mov    %ax,-0x68(%ebp)
+               :		srvaddr.inet.sin_port = htons(srv_inetport);
+               : 8049112:	movzwl -0x9e(%ebp),%eax
+               : 8049119:	mov    %eax,(%esp)
+               : 804911c:	call   8048954 <htons@plt>
+               : 8049121:	mov    %ax,-0x66(%ebp)
+               :		memcpy(&srvaddr.inet.sin_addr, srv_inetaddr,
+               : 8049125:	movl   $0x4,0x8(%esp)
+               : 804912d:	mov    -0xbc(%ebp),%eax
+               : 8049133:	mov    %eax,0x4(%esp)
+               : 8049137:	lea    -0x68(%ebp),%eax
+               : 804913a:	add    $0x4,%eax
+               : 804913d:	mov    %eax,(%esp)
+               : 8049140:	call   80489a4 <memcpy@plt>
+               :				sizeof(*srv_inetaddr));
+               :		addrlen = sizeof(cliaddr.inet);
+               : 8049145:	movl   $0x10,-0xa8(%ebp)
+               : 804914f:	jmp    8049199 <client+0x13f>
+               :	} else {
+               :		cliaddr.serval.sv_family = family;
+               : 8049151:	mov    -0xac(%ebp),%eax
+               : 8049157:	mov    %ax,-0x44(%ebp)
+               :		cliaddr.serval.sv_srvid.s_sid32[0] = htonl(getpid());
+               : 804915b:	call   80488d4 <getpid@plt>
+               : 8049160:	mov    %eax,(%esp)
+               : 8049163:	call   8048ad4 <htonl@plt>
+               : 8049168:	mov    %eax,-0x40(%ebp)
+               :		srvaddr.serval.sv_family = AF_SERVAL;
+               : 804916b:	movw   $0x1c,-0x68(%ebp)
+               :		memcpy(&srvaddr.serval.sv_srvid,
+               : 8049171:	movl   $0x20,0x8(%esp)
+               : 8049179:	movl   $0x804b100,0x4(%esp)
+               : 8049181:	lea    -0x68(%ebp),%eax
+               : 8049184:	add    $0x4,%eax
+               : 8049187:	mov    %eax,(%esp)
+               : 804918a:	call   80489a4 <memcpy@plt>
+               :				&server_srvid, sizeof(server_srvid));
+               :		addrlen = sizeof(cliaddr.serval);
+               : 804918f:	movl   $0x24,-0xa8(%ebp)
+               :		/* srvaddr.sv_flags = SV_WANT_FAILOVER; */
+               :	}
+               :
+               :	sock = socket_sv(family, SOCK_STREAM, 0);
+               : 8049199:	movl   $0x0,0x8(%esp)
+               : 80491a1:	movl   $0x1,0x4(%esp)
+               : 80491a9:	mov    -0xac(%ebp),%eax
+               : 80491af:	mov    %eax,(%esp)
+               : 80491b2:	call   8048994 <socket@plt>
+               : 80491b7:	mov    %eax,-0xb0(%ebp)
+               :
+               :	set_reuse_ok(sock);
+               : 80491bd:	mov    -0xb0(%ebp),%eax
+               : 80491c3:	mov    %eax,(%esp)
+               : 80491c6:	call   8048d9c <set_reuse_ok>
+               :
+               :	if (family == AF_SERVAL) {
+               : 80491cb:	cmpl   $0x1c,-0xac(%ebp)
+               : 80491d2:	jne    8049231 <client+0x1d7>
+               :		ret = bind_sv(sock, &cliaddr.saddr, addrlen);
+               : 80491d4:	mov    -0xa8(%ebp),%eax
+               : 80491da:	mov    %eax,0x8(%esp)
+               : 80491de:	lea    -0x44(%ebp),%eax
+               : 80491e1:	mov    %eax,0x4(%esp)
+               : 80491e5:	mov    -0xb0(%ebp),%eax
+               : 80491eb:	mov    %eax,(%esp)
+               : 80491ee:	call   80489e4 <bind@plt>
+               : 80491f3:	mov    %eax,-0xa4(%ebp)
+               :
+               :		if (ret < 0) {
+               : 80491f9:	cmpl   $0x0,-0xa4(%ebp)
+               : 8049200:	jns    8049231 <client+0x1d7>
+               :			fprintf(stderr, "error client binding socket: %s\n",
+               :					strerror_sv(errno));
+               : 8049202:	call   8048884 <__errno_location@plt>
+               :
+               :	if (family == AF_SERVAL) {
+               :		ret = bind_sv(sock, &cliaddr.saddr, addrlen);
+               :
+               :		if (ret < 0) {
+               :			fprintf(stderr, "error client binding socket: %s\n",
+               : 8049207:	mov    (%eax),%eax
+               : 8049209:	mov    %eax,(%esp)
+               : 804920c:	call   80488e4 <strerror@plt>
+               : 8049211:	mov    $0x8049b6c,%ecx
+               : 8049216:	mov    0x804b0c0,%edx
+               : 804921c:	mov    %eax,0x8(%esp)
+               : 8049220:	mov    %ecx,0x4(%esp)
+               : 8049224:	mov    %edx,(%esp)
+               : 8049227:	call   8048a44 <fprintf@plt>
+               :					strerror_sv(errno));
+               :			goto out;
+               : 804922c:	jmp    80494de <client+0x484>
+               :		}
+               :	}
+               :
+               :	if (family == AF_INET) {
+               : 8049231:	cmpl   $0x2,-0xac(%ebp)
+               : 8049238:	jne    804927f <client+0x225>
+               :		char buf[18];
+               :		printf("Connecting to service %s:%u\n",
+               : 804923a:	movzwl -0x9e(%ebp),%ebx
+               : 8049241:	movl   $0x12,0xc(%esp)
+               : 8049249:	lea    -0x1e(%ebp),%eax
+               : 804924c:	mov    %eax,0x8(%esp)
+               : 8049250:	mov    -0xbc(%ebp),%eax
+               : 8049256:	mov    %eax,0x4(%esp)
+               : 804925a:	mov    -0xac(%ebp),%eax
+               : 8049260:	mov    %eax,(%esp)
+               : 8049263:	call   8048894 <inet_ntop@plt>
+               : 8049268:	mov    $0x8049b8d,%edx
+               : 804926d:	mov    %ebx,0x8(%esp)
+               : 8049271:	mov    %eax,0x4(%esp)
+               : 8049275:	mov    %edx,(%esp)
+               : 8049278:	call   80489d4 <printf@plt>
+               : 804927d:	jmp    804929e <client+0x244>
+               :				inet_ntop(family, srv_inetaddr, buf, 18),
+               :				srv_inetport);
+               :	} else {
+               :		printf("Connecting to service id %s\n",
+               : 804927f:	lea    -0x68(%ebp),%eax
+               : 8049282:	add    $0x4,%eax
+               : 8049285:	mov    %eax,(%esp)
+               : 8049288:	call   8048ca8 <service_id_to_str>
+               : 804928d:	mov    $0x8049baa,%edx
+               : 8049292:	mov    %eax,0x4(%esp)
+               : 8049296:	mov    %edx,(%esp)
+               : 8049299:	call   80489d4 <printf@plt>
+               :				service_id_to_str(&srvaddr.serval.sv_srvid));
+               :	}
+               :	ret = connect_sv(sock, &srvaddr.saddr, addrlen);
+               : 804929e:	mov    -0xa8(%ebp),%eax
+               : 80492a4:	mov    %eax,0x8(%esp)
+               : 80492a8:	lea    -0x68(%ebp),%eax
+               : 80492ab:	mov    %eax,0x4(%esp)
+               : 80492af:	mov    -0xb0(%ebp),%eax
+               : 80492b5:	mov    %eax,(%esp)
+               : 80492b8:	call   80488b4 <connect@plt>
+               : 80492bd:	mov    %eax,-0xa4(%ebp)
+               :
+               :	if (ret < 0) {
+               : 80492c3:	cmpl   $0x0,-0xa4(%ebp)
+               : 80492ca:	jns    80492fb <client+0x2a1>
+               :		fprintf(stderr, "ERROR connecting: %s\n",
+               :				strerror_sv(errno));
+               : 80492cc:	call   8048884 <__errno_location@plt>
+               :				service_id_to_str(&srvaddr.serval.sv_srvid));
+               :	}
+               :	ret = connect_sv(sock, &srvaddr.saddr, addrlen);
+               :
+               :	if (ret < 0) {
+               :		fprintf(stderr, "ERROR connecting: %s\n",
+               : 80492d1:	mov    (%eax),%eax
+               : 80492d3:	mov    %eax,(%esp)
+               : 80492d6:	call   80488e4 <strerror@plt>
+               : 80492db:	mov    $0x8049bc7,%ecx
+               : 80492e0:	mov    0x804b0c0,%edx
+               : 80492e6:	mov    %eax,0x8(%esp)
+               : 80492ea:	mov    %ecx,0x4(%esp)
+               : 80492ee:	mov    %edx,(%esp)
+               : 80492f1:	call   8048a44 <fprintf@plt>
+               :				strerror_sv(errno));
+               :		goto out;
+               : 80492f6:	jmp    80494de <client+0x484>
+               :	{
+               :		struct {
+               :			struct sockaddr_sv sv;
+               :			struct sockaddr_in in;
+               :		} saddr;
+               :		socklen_t addrlen = sizeof(saddr.in);
+               : 80492fb:	movl   $0x10,-0xb4(%ebp)
+               :		char ipaddr[18];
+               :
+               :		memset(&saddr, 0, sizeof(saddr));
+               : 8049305:	movl   $0x34,0x8(%esp)
+               : 804930d:	movl   $0x0,0x4(%esp)
+               : 8049315:	lea    -0x9c(%ebp),%eax
+               : 804931b:	mov    %eax,(%esp)
+               : 804931e:	call   8048934 <memset@plt>
+               :
+               :		ret = getsockname(sock, (struct sockaddr *)&saddr, &addrlen);
+               : 8049323:	lea    -0x9c(%ebp),%eax
+               : 8049329:	lea    -0xb4(%ebp),%edx
+               : 804932f:	mov    %edx,0x8(%esp)
+               : 8049333:	mov    %eax,0x4(%esp)
+               : 8049337:	mov    -0xb0(%ebp),%eax
+               : 804933d:	mov    %eax,(%esp)
+               : 8049340:	call   80488f4 <getsockname@plt>
+               : 8049345:	mov    %eax,-0xa4(%ebp)
+               :
+               :		if (ret == -1) {
+               : 804934b:	cmpl   $0xffffffff,-0xa4(%ebp)
+               : 8049352:	jne    8049380 <client+0x326>
+               :			fprintf(stderr, "Could not get sock name : %s\n",
+               :					strerror(errno));
+               : 8049354:	call   8048884 <__errno_location@plt>
+               :		memset(&saddr, 0, sizeof(saddr));
+               :
+               :		ret = getsockname(sock, (struct sockaddr *)&saddr, &addrlen);
+               :
+               :		if (ret == -1) {
+               :			fprintf(stderr, "Could not get sock name : %s\n",
+               : 8049359:	mov    (%eax),%eax
+               : 804935b:	mov    %eax,(%esp)
+               : 804935e:	call   80488e4 <strerror@plt>
+               : 8049363:	mov    $0x8049bdd,%ecx
+               : 8049368:	mov    0x804b0c0,%edx
+               : 804936e:	mov    %eax,0x8(%esp)
+               : 8049372:	mov    %ecx,0x4(%esp)
+               : 8049376:	mov    %edx,(%esp)
+               : 8049379:	call   8048a44 <fprintf@plt>
+               : 804937e:	jmp    80493d0 <client+0x376>
+               :					strerror(errno));
+               :		} else {
+               :			printf("sock name is %s @ %s\n",
+               : 8049380:	movl   $0x12,0xc(%esp)
+               : 8049388:	lea    -0x1e(%ebp),%eax
+               : 804938b:	mov    %eax,0x8(%esp)
+               : 804938f:	lea    -0x9c(%ebp),%eax
+               : 8049395:	add    $0x28,%eax
+               : 8049398:	mov    %eax,0x4(%esp)
+               : 804939c:	movl   $0x2,(%esp)
+               : 80493a3:	call   8048894 <inet_ntop@plt>
+               : 80493a8:	mov    %eax,%ebx
+               : 80493aa:	lea    -0x9c(%ebp),%eax
+               : 80493b0:	add    $0x4,%eax
+               : 80493b3:	mov    %eax,(%esp)
+               : 80493b6:	call   8048ca8 <service_id_to_str>
+               : 80493bb:	mov    $0x8049bfb,%edx
+               : 80493c0:	mov    %ebx,0x8(%esp)
+               : 80493c4:	mov    %eax,0x4(%esp)
+               : 80493c8:	mov    %edx,(%esp)
+               : 80493cb:	call   80489d4 <printf@plt>
+               :					service_id_to_str(&saddr.sv.sv_srvid),
+               :					inet_ntop(AF_INET, &saddr.in.sin_addr,
+               :							ipaddr, 18));
+               :		}
+               :
+               :		memset(&saddr, 0, sizeof(saddr));
+               : 80493d0:	movl   $0x34,0x8(%esp)
+               : 80493d8:	movl   $0x0,0x4(%esp)
+               : 80493e0:	lea    -0x9c(%ebp),%eax
+               : 80493e6:	mov    %eax,(%esp)
+               : 80493e9:	call   8048934 <memset@plt>
+               :
+               :		ret = getpeername(sock, (struct sockaddr *)&saddr, &addrlen);
+               : 80493ee:	lea    -0x9c(%ebp),%eax
+               : 80493f4:	lea    -0xb4(%ebp),%edx
+               : 80493fa:	mov    %edx,0x8(%esp)
+               : 80493fe:	mov    %eax,0x4(%esp)
+               : 8049402:	mov    -0xb0(%ebp),%eax
+               : 8049408:	mov    %eax,(%esp)
+               : 804940b:	call   8048ae4 <getpeername@plt>
+               : 8049410:	mov    %eax,-0xa4(%ebp)
+               :
+               :		if (ret == -1) {
+               : 8049416:	cmpl   $0xffffffff,-0xa4(%ebp)
+               : 804941d:	jne    804944b <client+0x3f1>
+               :			fprintf(stderr, "Could not get peer name : %s\n",
+               :					strerror(errno));
+               : 804941f:	call   8048884 <__errno_location@plt>
+               :		memset(&saddr, 0, sizeof(saddr));
+               :
+               :		ret = getpeername(sock, (struct sockaddr *)&saddr, &addrlen);
+               :
+               :		if (ret == -1) {
+               :			fprintf(stderr, "Could not get peer name : %s\n",
+               : 8049424:	mov    (%eax),%eax
+               : 8049426:	mov    %eax,(%esp)
+               : 8049429:	call   80488e4 <strerror@plt>
+               : 804942e:	mov    $0x8049c11,%ecx
+               : 8049433:	mov    0x804b0c0,%edx
+               : 8049439:	mov    %eax,0x8(%esp)
+               : 804943d:	mov    %ecx,0x4(%esp)
+               : 8049441:	mov    %edx,(%esp)
+               : 8049444:	call   8048a44 <fprintf@plt>
+               : 8049449:	jmp    804949b <client+0x441>
+               :					strerror(errno));
+               :		} else {
+               :			printf("peer name is %s @ %s\n",
+               : 804944b:	movl   $0x12,0xc(%esp)
+               : 8049453:	lea    -0x1e(%ebp),%eax
+               : 8049456:	mov    %eax,0x8(%esp)
+               : 804945a:	lea    -0x9c(%ebp),%eax
+               : 8049460:	add    $0x28,%eax
+               : 8049463:	mov    %eax,0x4(%esp)
+               : 8049467:	movl   $0x2,(%esp)
+               : 804946e:	call   8048894 <inet_ntop@plt>
+               : 8049473:	mov    %eax,%ebx
+               : 8049475:	lea    -0x9c(%ebp),%eax
+               : 804947b:	add    $0x4,%eax
+               : 804947e:	mov    %eax,(%esp)
+               : 8049481:	call   8048ca8 <service_id_to_str>
+               : 8049486:	mov    $0x8049c2f,%edx
+               : 804948b:	mov    %ebx,0x8(%esp)
+               : 804948f:	mov    %eax,0x4(%esp)
+               : 8049493:	mov    %edx,(%esp)
+               : 8049496:	call   80489d4 <printf@plt>
+               :					inet_ntop(AF_INET, &saddr.in.sin_addr,
+               :							ipaddr, 18));
+               :		}
+               :	}
+               :#endif
+               :	printf("Connected successfully!\n");
+               : 804949b:	movl   $0x8049c45,(%esp)
+               : 80494a2:	call   8048ab4 <puts@plt>
+               :
+               :	ret = send_httpget_req(sock);
+               : 80494a7:	mov    -0xb0(%ebp),%eax
+               : 80494ad:	mov    %eax,(%esp)
+               : 80494b0:	call   8048ece <send_httpget_req>
+               : 80494b5:	mov    %eax,-0xa4(%ebp)
+               :
+               :	if (ret == EXIT_SUCCESS) {
+               : 80494bb:	cmpl   $0x0,-0xa4(%ebp)
+               : 80494c2:	jne    80494d2 <client+0x478>
+               :		printf("Success\n");
+               : 80494c4:	movl   $0x8049c5d,(%esp)
+               : 80494cb:	call   8048ab4 <puts@plt>
+               : 80494d0:	jmp    80494de <client+0x484>
+               :	} else {
+               :		printf("Receive failed\n");
+               : 80494d2:	movl   $0x8049c65,(%esp)
+               : 80494d9:	call   8048ab4 <puts@plt>
+               :	}
+               :	out:
+               :	fprintf(stderr, "Closing socket...\n");
+               : 80494de:	mov    0x804b0c0,%eax
+               : 80494e3:	mov    %eax,%edx
+               : 80494e5:	mov    $0x8049c74,%eax
+               : 80494ea:	mov    %edx,0xc(%esp)
+               : 80494ee:	movl   $0x12,0x8(%esp)
+               : 80494f6:	movl   $0x1,0x4(%esp)
+               : 80494fe:	mov    %eax,(%esp)
+               : 8049501:	call   8048a34 <fwrite@plt>
+               :	close_sv(sock);
+               : 8049506:	mov    -0xb0(%ebp),%eax
+               : 804950c:	mov    %eax,(%esp)
+               : 804950f:	call   8048a24 <close@plt>
+               :
+               :	return ret;
+               : 8049514:	mov    -0xa4(%ebp),%eax
+               :}
+               : 804951a:	mov    -0xc(%ebp),%edx
+               : 804951d:	xor    %gs:0x14,%edx
+               : 8049524:	je     804952b <client+0x4d1>
+               : 8049526:	call   8048a74 <__stack_chk_fail@plt>
+               : 804952b:	add    $0xd4,%esp
+               : 8049531:	pop    %ebx
+               : 8049532:	pop    %ebp
+               : 8049533:	ret    
+               :
+               :/home/sns/ServalDHT/serval/src/test/http_client:     file format elf32-i386
+               :
+               :
+               :Disassembly of section .text:
+               :
+08049633 <main>: /* main total:      1 50.0000 */
+               :	out:
+               :	return inet_pton(AF_INET, inet_str, ip) == 1;
+               :}
+               :
+               :int main(int argc, char **argv)
+               :{
+               : 8049633:	push   %ebp
+               : 8049634:	mov    %esp,%ebp
+               : 8049636:	and    $0xfffffff0,%esp
+               : 8049639:	sub    $0xb0,%esp
+               : 804963f:	call   8048a84 <mcount@plt>
+               :	struct sigaction action;
+               :
+               :	struct in_addr srv_inetaddr;
+               :	int port = DEFAULT_SERVER_SID;
+               : 8049644:	movzwl 0x804b0b0,%eax
+               : 804964b:	movzwl %ax,%eax
+               : 804964e:	mov    %eax,0xa0(%esp)
+               :	int family = AF_SERVAL;
+               : 8049655:	movl   $0x1c,0xac(%esp)
+               :
+               :	server_srvid.s_sid32[0] = htonl(DEFAULT_SERVER_SID);
+               : 8049660:	movzwl 0x804b0b0,%eax
+               : 8049667:	movzwl %ax,%eax
+               : 804966a:	mov    %eax,(%esp)
+               : 804966d:	call   8048ad4 <htonl@plt>
+               : 8049672:	mov    %eax,0x804b100
+               :
+               :	memset (&action, 0, sizeof(struct sigaction));
+               : 8049677:	movl   $0x8c,0x8(%esp)
+               : 804967f:	movl   $0x0,0x4(%esp)
+               : 8049687:	lea    0x10(%esp),%eax
+               : 804968b:	mov    %eax,(%esp)
+               : 804968e:	call   8048934 <memset@plt>
+               :	action.sa_handler = signal_handler;
+               : 8049693:	movl   $0x8048d09,0x10(%esp)
+               :
+               :	/* This server should shut down on these signals. */
+               :	sigaction(SIGTERM, &action, 0);
+               : 804969b:	lea    0x10(%esp),%eax
+               : 804969f:	movl   $0x0,0x8(%esp)
+               : 80496a7:	mov    %eax,0x4(%esp)
+               : 80496ab:	movl   $0xf,(%esp)
+               : 80496b2:	call   8048984 <sigaction@plt>
+               :	sigaction(SIGHUP, &action, 0);
+     1 50.0000 : 80496b7:	lea    0x10(%esp),%eax
+               : 80496bb:	movl   $0x0,0x8(%esp)
+               : 80496c3:	mov    %eax,0x4(%esp)
+               : 80496c7:	movl   $0x1,(%esp)
+               : 80496ce:	call   8048984 <sigaction@plt>
+               :	sigaction(SIGINT, &action, 0);
+               : 80496d3:	lea    0x10(%esp),%eax
+               : 80496d7:	movl   $0x0,0x8(%esp)
+               : 80496df:	mov    %eax,0x4(%esp)
+               : 80496e3:	movl   $0x2,(%esp)
+               : 80496ea:	call   8048984 <sigaction@plt>
+               :
+               :	progname = argv[0];
+               : 80496ef:	mov    0xc(%ebp),%eax
+               : 80496f2:	mov    (%eax),%eax
+               : 80496f4:	mov    %eax,0x804b0ac
+               :	argc--;
+               : 80496f9:	subl   $0x1,0x8(%ebp)
+               :	argv++;
+               : 80496fd:	addl   $0x4,0xc(%ebp)
+               :
+               :	while (argc && argv) {
+               : 8049701:	jmp    80498fd <main+0x2ca>
+               :		if (strcmp("-i", argv[0]) == 0 ||
+               : 8049706:	mov    0xc(%ebp),%eax
+               : 8049709:	mov    (%eax),%eax
+               : 804970b:	mov    %eax,0x4(%esp)
+               : 804970f:	movl   $0x8049d8e,(%esp)
+               : 8049716:	call   8048af4 <strcmp@plt>
+               : 804971b:	test   %eax,%eax
+               : 804971d:	je     8049738 <main+0x105>
+               :				strcmp("--inet", argv[0]) == 0) {
+               : 804971f:	mov    0xc(%ebp),%eax
+               : 8049722:	mov    (%eax),%eax
+               : 8049724:	mov    %eax,0x4(%esp)
+               : 8049728:	movl   $0x8049d91,(%esp)
+               : 804972f:	call   8048af4 <strcmp@plt>
+               :	progname = argv[0];
+               :	argc--;
+               :	argv++;
+               :
+               :	while (argc && argv) {
+               :		if (strcmp("-i", argv[0]) == 0 ||
+               : 8049734:	test   %eax,%eax
+               : 8049736:	jne    804978f <main+0x15c>
+               :				strcmp("--inet", argv[0]) == 0) {
+               :			if (argv[1] &&
+               : 8049738:	mov    0xc(%ebp),%eax
+               : 804973b:	add    $0x4,%eax
+               : 804973e:	mov    (%eax),%eax
+               : 8049740:	test   %eax,%eax
+               : 8049742:	je     80498f5 <main+0x2c2>
+               :					parse_inet_str(argv[1],
+               : 8049748:	mov    0xc(%ebp),%eax
+               : 804974b:	add    $0x4,%eax
+               : 804974e:	mov    (%eax),%eax
+               : 8049750:	lea    0xa0(%esp),%edx
+               : 8049757:	mov    %edx,0x8(%esp)
+               : 804975b:	lea    0xa4(%esp),%edx
+               : 8049762:	mov    %edx,0x4(%esp)
+               : 8049766:	mov    %eax,(%esp)
+               : 8049769:	call   8049564 <parse_inet_str>
+               :	argv++;
+               :
+               :	while (argc && argv) {
+               :		if (strcmp("-i", argv[0]) == 0 ||
+               :				strcmp("--inet", argv[0]) == 0) {
+               :			if (argv[1] &&
+               : 804976e:	cmp    $0x1,%eax
+               : 8049771:	jne    80498f4 <main+0x2c1>
+               :					parse_inet_str(argv[1],
+               :							&srv_inetaddr, &port) == 1) {
+               :				family = AF_INET;
+               : 8049777:	movl   $0x2,0xac(%esp)
+               :				argc--;
+               : 8049782:	subl   $0x1,0x8(%ebp)
+               :				argv++;
+               : 8049786:	addl   $0x4,0xc(%ebp)
+               :	argv++;
+               :
+               :	while (argc && argv) {
+               :		if (strcmp("-i", argv[0]) == 0 ||
+               :				strcmp("--inet", argv[0]) == 0) {
+               :			if (argv[1] &&
+               : 804978a:	jmp    80498f5 <main+0x2c2>
+               :							&srv_inetaddr, &port) == 1) {
+               :				family = AF_INET;
+               :				argc--;
+               :				argv++;
+               :			}
+               :		} else if (strcmp("-h", argv[0]) == 0 ||
+               : 804978f:	mov    0xc(%ebp),%eax
+               : 8049792:	mov    (%eax),%eax
+               : 8049794:	mov    %eax,0x4(%esp)
+               : 8049798:	movl   $0x8049d98,(%esp)
+               : 804979f:	call   8048af4 <strcmp@plt>
+               : 80497a4:	test   %eax,%eax
+               : 80497a6:	je     80497c1 <main+0x18e>
+               :				strcmp("--help", argv[0]) == 0) {
+               : 80497a8:	mov    0xc(%ebp),%eax
+               : 80497ab:	mov    (%eax),%eax
+               : 80497ad:	mov    %eax,0x4(%esp)
+               : 80497b1:	movl   $0x8049d9b,(%esp)
+               : 80497b8:	call   8048af4 <strcmp@plt>
+               :							&srv_inetaddr, &port) == 1) {
+               :				family = AF_INET;
+               :				argc--;
+               :				argv++;
+               :			}
+               :		} else if (strcmp("-h", argv[0]) == 0 ||
+               : 80497bd:	test   %eax,%eax
+               : 80497bf:	jne    80497d0 <main+0x19d>
+               :				strcmp("--help", argv[0]) == 0) {
+               :			print_help();
+               : 80497c1:	call   8049534 <print_help>
+               :			return EXIT_SUCCESS;
+               : 80497c6:	mov    $0x0,%eax
+               : 80497cb:	jmp    8049938 <main+0x305>
+               :		} else if (strcmp("-s", argv[0]) == 0 ||
+               : 80497d0:	mov    0xc(%ebp),%eax
+               : 80497d3:	mov    (%eax),%eax
+               : 80497d5:	mov    %eax,0x4(%esp)
+               : 80497d9:	movl   $0x8049da2,(%esp)
+               : 80497e0:	call   8048af4 <strcmp@plt>
+               : 80497e5:	test   %eax,%eax
+               : 80497e7:	je     8049806 <main+0x1d3>
+               :				strcmp("--serviceid", argv[0]) == 0) {
+               : 80497e9:	mov    0xc(%ebp),%eax
+               : 80497ec:	mov    (%eax),%eax
+               : 80497ee:	mov    %eax,0x4(%esp)
+               : 80497f2:	movl   $0x8049da5,(%esp)
+               : 80497f9:	call   8048af4 <strcmp@plt>
+               :			}
+               :		} else if (strcmp("-h", argv[0]) == 0 ||
+               :				strcmp("--help", argv[0]) == 0) {
+               :			print_help();
+               :			return EXIT_SUCCESS;
+               :		} else if (strcmp("-s", argv[0]) == 0 ||
+               : 80497fe:	test   %eax,%eax
+               : 8049800:	jne    8049893 <main+0x260>
+               :				strcmp("--serviceid", argv[0]) == 0) {
+               :			char *endptr = NULL;
+               : 8049806:	movl   $0x0,0x9c(%esp)
+               :			unsigned long sid = strtoul(argv[1], &endptr, 10);
+               : 8049811:	mov    0xc(%ebp),%eax
+               : 8049814:	add    $0x4,%eax
+               : 8049817:	mov    (%eax),%eax
+               : 8049819:	movl   $0xa,0x8(%esp)
+               : 8049821:	lea    0x9c(%esp),%edx
+               : 8049828:	mov    %edx,0x4(%esp)
+               : 804982c:	mov    %eax,(%esp)
+               : 804982f:	call   80489b4 <strtoul@plt>
+               : 8049834:	mov    %eax,0xa8(%esp)
+               :
+               :			if (*endptr != '\0') {
+               : 804983b:	mov    0x9c(%esp),%eax
+               : 8049842:	movzbl (%eax),%eax
+               : 8049845:	test   %al,%al
+               : 8049847:	je     8049875 <main+0x242>
+               :				fprintf(stderr, "invalid service id %s",
+               :						argv[1]);
+               : 8049849:	mov    0xc(%ebp),%eax
+               : 804984c:	add    $0x4,%eax
+               :				strcmp("--serviceid", argv[0]) == 0) {
+               :			char *endptr = NULL;
+               :			unsigned long sid = strtoul(argv[1], &endptr, 10);
+               :
+               :			if (*endptr != '\0') {
+               :				fprintf(stderr, "invalid service id %s",
+               : 804984f:	mov    (%eax),%ecx
+               : 8049851:	mov    $0x8049db1,%edx
+               : 8049856:	mov    0x804b0c0,%eax
+               : 804985b:	mov    %ecx,0x8(%esp)
+               : 804985f:	mov    %edx,0x4(%esp)
+               : 8049863:	mov    %eax,(%esp)
+               : 8049866:	call   8048a44 <fprintf@plt>
+               :						argv[1]);
+               :				return EXIT_FAILURE;
+               : 804986b:	mov    $0x1,%eax
+               : 8049870:	jmp    8049938 <main+0x305>
+               :			} else  {
+               :				server_srvid.s_sid32[0] = htonl(sid);
+               : 8049875:	mov    0xa8(%esp),%eax
+               : 804987c:	mov    %eax,(%esp)
+               : 804987f:	call   8048ad4 <htonl@plt>
+               : 8049884:	mov    %eax,0x804b100
+               :			}
+               :			argc--;
+               : 8049889:	subl   $0x1,0x8(%ebp)
+               :			argv++;
+               : 804988d:	addl   $0x4,0xc(%ebp)
+               :		} else if (strcmp("-h", argv[0]) == 0 ||
+               :				strcmp("--help", argv[0]) == 0) {
+               :			print_help();
+               :			return EXIT_SUCCESS;
+               :		} else if (strcmp("-s", argv[0]) == 0 ||
+               :				strcmp("--serviceid", argv[0]) == 0) {
+               : 8049891:	jmp    80498f5 <main+0x2c2>
+               :			} else  {
+               :				server_srvid.s_sid32[0] = htonl(sid);
+               :			}
+               :			argc--;
+               :			argv++;
+               :		} else if (strcmp("-p", argv[0]) == 0 ||
+               : 8049893:	mov    0xc(%ebp),%eax
+               : 8049896:	mov    (%eax),%eax
+               : 8049898:	mov    %eax,0x4(%esp)
+               : 804989c:	movl   $0x8049dc7,(%esp)
+               : 80498a3:	call   8048af4 <strcmp@plt>
+               : 80498a8:	test   %eax,%eax
+               : 80498aa:	je     80498c5 <main+0x292>
+               :				strcmp("--page", argv[0]) == 0) {
+               : 80498ac:	mov    0xc(%ebp),%eax
+               : 80498af:	mov    (%eax),%eax
+               : 80498b1:	mov    %eax,0x4(%esp)
+               : 80498b5:	movl   $0x8049dca,(%esp)
+               : 80498bc:	call   8048af4 <strcmp@plt>
+               :			} else  {
+               :				server_srvid.s_sid32[0] = htonl(sid);
+               :			}
+               :			argc--;
+               :			argv++;
+               :		} else if (strcmp("-p", argv[0]) == 0 ||
+               : 80498c1:	test   %eax,%eax
+               : 80498c3:	jne    80498e8 <main+0x2b5>
+               :				strcmp("--page", argv[0]) == 0) {
+               :			if (argv[1]) {
+               : 80498c5:	mov    0xc(%ebp),%eax
+               : 80498c8:	add    $0x4,%eax
+               : 80498cb:	mov    (%eax),%eax
+               : 80498cd:	test   %eax,%eax
+               : 80498cf:	je     80498f5 <main+0x2c2>
+               :				page = argv[1];
+               : 80498d1:	mov    0xc(%ebp),%eax
+               : 80498d4:	add    $0x4,%eax
+               : 80498d7:	mov    (%eax),%eax
+               : 80498d9:	mov    %eax,0x804b0b8
+               :				argc--;
+               : 80498de:	subl   $0x1,0x8(%ebp)
+               :				argv++;
+               : 80498e2:	addl   $0x4,0xc(%ebp)
+               :			}
+               :			argc--;
+               :			argv++;
+               :		} else if (strcmp("-p", argv[0]) == 0 ||
+               :				strcmp("--page", argv[0]) == 0) {
+               :			if (argv[1]) {
+               : 80498e6:	jmp    80498f5 <main+0x2c2>
+               :				page = argv[1];
+               :				argc--;
+               :				argv++;
+               :			}
+               :		}else {
+               :			print_help();
+               : 80498e8:	call   8049534 <print_help>
+               :			return EXIT_FAILURE;
+               : 80498ed:	mov    $0x1,%eax
+               : 80498f2:	jmp    8049938 <main+0x305>
+               :	argv++;
+               :
+               :	while (argc && argv) {
+               :		if (strcmp("-i", argv[0]) == 0 ||
+               :				strcmp("--inet", argv[0]) == 0) {
+               :			if (argv[1] &&
+               : 80498f4:	nop
+               :			}
+               :		}else {
+               :			print_help();
+               :			return EXIT_FAILURE;
+               :		}
+               :		argc--;
+               : 80498f5:	subl   $0x1,0x8(%ebp)
+               :		argv++;
+               : 80498f9:	addl   $0x4,0xc(%ebp)
+               :
+               :	progname = argv[0];
+               :	argc--;
+               :	argv++;
+               :
+               :	while (argc && argv) {
+               : 80498fd:	cmpl   $0x0,0x8(%ebp)
+               : 8049901:	je     804990d <main+0x2da>
+               : 8049903:	cmpl   $0x0,0xc(%ebp)
+               : 8049907:	jne    8049706 <main+0xd3>
+               :		}
+               :		argc--;
+               :		argv++;
+               :	}
+               :
+               :	return client(family == AF_INET ? &srv_inetaddr : NULL, port);
+               : 804990d:	mov    0xa0(%esp),%edx
+               : 8049914:	cmpl   $0x2,0xac(%esp)
+               : 804991c:	jne    8049927 <main+0x2f4>
+               : 804991e:	lea    0xa4(%esp),%eax
+               : 8049925:	jmp    804992c <main+0x2f9>
+               : 8049927:	mov    $0x0,%eax
+               : 804992c:	mov    %edx,0x4(%esp)
+               : 8049930:	mov    %eax,(%esp)
+               : 8049933:	call   804905a <client>
+               :}
+               : 8049938:	leave  
+               : 8049939:	ret    
+               : 804993a:	nop
+               : 804993b:	nop
+               : 804993c:	nop
+               : 804993d:	nop
+               : 804993e:	nop
+               : 804993f:	nop

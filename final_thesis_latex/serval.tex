@@ -66,7 +66,7 @@ This opens new windows for experimentation and innovation.
 
 \subsection{Profiling the Serval prototype implementation}
 Among the admirable headliners of Serval is the working prototype version of the proposed architecture.
-In more than 28000 lines of code\footnote{Serval is an Open Source code, hosted at a public repository\\ \url{https://github.com/princeton-sns/serval/}.} covering functionality of the Service Access Layer (both in userlevel operation and as a Linux kernel module), bindings for multiple programming languages, a translator, libraries and examples for writing Serval compatible applications, and with a reported throughput comparable to the unmodified TCP/IP stack, it is clearly showcased the feasibility of the solution.\\
+In more than 28000 lines of code\footnote{Serval is an Open Source project, hosted at a public repository\\ \url{https://github.com/princeton-sns/serval/}.} covering functionality of the Service Access Layer (both in userlevel operation and as a Linux kernel module), bindings for multiple programming languages, a translator, libraries and examples for writing Serval compatible applications, and with a reported throughput comparable to the unmodified TCP/IP stack, it is clearly showcased the feasibility of the solution.\\
 \indent In this section we are profiling the prototype in regard to the following parameters:
 \begin{enumerate}
   \item Memory Management
@@ -78,16 +78,18 @@ In more than 28000 lines of code\footnote{Serval is an Open Source code, hosted 
 Then we will be graphically presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family. The first four tests have not been published before.
 
 \paragraph{} Output was obtained on a HP Prodesk 600 G1 --Intel(R) Core(TM) i5-4570 @ 3.20GHZ, 4GB RAM-- machine running Ubuntu 11.04 (Natty Narwahl) kernel version 2.6.38-16-generic (rebuilt with debug symbols).
-For the tests of gprof, valgrind Serval was built with \texttt{-{}-}enable-debug option.
-Also with CFLAGS, LDFLAGS and CPPFLAGS equal to "-pg" for gprof testing.\\
-\indent For the measurements we ported the nginx web server to Serval architecture, integrating the [nginx\_1.2.9\_serval\_fqdn] branch commits from \mbox{sns/Serval} repository into the build procedure.
+\\ \indent For the tests with gprof, valgrind, oprofile and strace Serval module and http\_client were built with debug symbols.
+Extra for gprof testing, Serval was built with CFLAGS, LDFLAGS and CPPFLAGS equal to "-pg" .
+\\ \indent For the measurements we ported libmicrohttpd to use Serval active sockets.
 Also, we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call.
-Source code along with benchmark results can be found in the Appendix (\ref{sec:appendix}).
+For each case, we used the INET and Serval version of librehttpd and http\_client respectively.
+Therefore, besides the connectivity parts, both INET and AF\_SERVAL versions are working with the same logic in accepting and processing requests.
+This way we believe the tests can give unbiased results, which would not be the case if for example we used apache for INET and libmicrohttpd for SERVAL requests.
+\\ \indent Source code of libmicrohttpd and http\_client, plus the integration of Serval patch in the build procedure of nginx, can be found in the Appendix (\ref{sec:appendix}), and benchmark results in the public repository \footnote{\url{https://github.com/misaakidis/ServalDHT}}.
 
 \iffalse
 gprof
 perf
-google-profile tools
 1) memory (oprofile)
 2) CPU cycles (callgrind)
 3) system calls time (strace)
