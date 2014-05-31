@@ -72,14 +72,14 @@ In more than 28000 lines of code\footnote{Serval is an Open Source project, host
   \item CPU Instructions and Cycles
   \item System Call execution times
   \item Execution time needed for the completion of a numbered iteration of requests
-  \item Number of packers per request, bytes sent, packet structure
+  \item Number of packers per request, bytes on the wire
 \end{enumerate}
 Then we will be presenting the results juxtaposed to the measurements of the unchanged TCP/IP stack and the AF\_INET family.
 
 \paragraph{} Output was obtained on a HP Prodesk 600 G1 --Intel(R) Core(TM) i5-4570 @ 3.20GHZ, 4GB RAM-- machine running Ubuntu 11.04 (Natty Narwahl) kernel version 2.6.38-16-generic (rebuilt with debug symbols).
 \\ \indent The profiling tools we used include gprof, perf, oprofile, valgrind, strace, zoom and google performance tools.
 For the tests with gprof, valgrind, oprofile and strace, Serval module and http\_client were built with debug symbols.
-Extra, for gprof testing, Serval was built with CFLAGS, LDFLAGS and CPPFLAGS equal to "-pg" .
+Extra, for gprof testing, Serval was built with CFLAGS, LDFLAGS and CPPFLAGS equal to "-pg".
 \\ \indent For the measurements we ported libmicrohttpd to use Serval active sockets.
 Also, we implemented a simple HTTP client which supports both AF\_INET and the AF\_SERVAL socket families, depending on the options passed during the call.
 For each case, we used the INET and Serval version of librehttpd and http\_client respectively.
@@ -88,7 +88,7 @@ This way we believe the tests can give unbiased results, which would not be the 
 \\ \indent Source code of libmicrohttpd and http\_client, along with the integration of Serval patch in the build procedure of nginx, can be found in the Appendix (\ref{sec:appendix}).
 Benchmark results are published in the ServalDHT repository \footnote{\url{https://github.com/misaakidis/ServalDHT}}.
 
-\paragraph{Serval's performance in the worst case scenario}
+\paragraph{Serval's performance in the worst case scenario} \hfill \\
 In a network architecture benchmarking what matters the most is its total throughput under a stress test.
 In other words, the data rate of information (both headers and payload) and the number of packets that can be processed during a specific time frame.
 An excellent tool for this case, \emph{iperf}, proved Serval's TCP throughput to be very close to the original TCP's one, almost fully utilizing a GigE interface. \nomenclature{GigE}{Gigabit Ethernet}
@@ -107,18 +107,70 @@ We can presume for those reasons, that Serval (and any other relative architectu
 Since both the server and the client are running in the same machine, we can presume that the available bandwidth exempts network "links" from being responsible for a bottleneck.
 The results show how well the Serval implementation can manage when it is pushed to the limit.
 
-\paragraph{CPU Instructions and Cycles}
-
+\paragraph{Instructions and CPU Cycles} \hfill \\
 \begin{table}
 \begin{center}
-  \begin{tabular}{lcc}
+  \begin{tabular}{l||cc|cc}
   	\toprule
-  		&	PF\_INET & PF\_SERVAL \\
+  	Metric			&	\multicolumn{2}{c}{PF\_INET}	&	\multicolumn{2}{c}{PF\_SERVAL}	\\
   	\midrule
-    Instructions	&	1 	&	2	\\
-    CPU Cycles	&	4	&	5	\\
+    Instructions	&	690,559		&	$\pm$0.009\%	&	1,864,287	&	$\pm$0.054\%	\\
+    CPU Cycles		&	1,019,096	&	$\pm$0.062\%	&	8,799,912	&	$\pm$0.191\%	\\
     \bottomrule
   \end{tabular}
-  \caption[Test]{A normal caption}
+  \caption[Benchmark: Instructions and CPU Cycles]{Instructions count and CPU Cycles in 10000 runs of http\_client}
+\end{center}
+\end{table}
+
+\paragraph{System Calls execution times} \hfill \\
+\begin{table}
+\begin{center}
+  \begin{tabular}{l||c|c}
+  	\toprule
+  	Syscall			&	PF\_INET	&	PF\_SERVAL	\\
+  	\midrule
+    socket			&	0.145		&	0.070		\\
+    setsockopt		&	0.160		&	0.118		\\
+    connect			&	0.117		&	0.113		\\
+    getsockname		&	0.300		&	0.552		\\
+    send			&	0.089		&	0.086		\\
+    recv			&	0.159		&	0.313		\\
+    close			&	0.086		&	0.087		\\
+    \bottomrule
+  \end{tabular}
+  \caption[Benchmark: System Call execution times]{Kernel System Calls execution times (in milliseconds)}
+\end{center}
+\end{table}
+
+\paragraph{Finite Requests loop timing} \hfill \\
+\begin{table}
+\begin{center}
+  \begin{tabular}{l||cc|cc|c}
+  	\toprule
+  	Requests	&	\multicolumn{2}{c}{PF\_INET}	&	\multicolumn{2}{c}{PF\_SERVAL}	&	Increase	\\
+  	\midrule
+    10			&	1.171		&	$\pm$2.171\%	&	1.845		&	$\pm$1.542\%	&	57.5\%		\\
+    100			&	0.399		&	$\pm$7.248\%	&	0.686		&	$\pm$9.404\%	&	71.9\%		\\
+    1000		&	0.590		&	$\pm$5.835\%	&	0.837		&	$\pm$7.751\%	&	41.9\%		\\
+    \bottomrule
+  \end{tabular}
+  \caption[Benchmark: Requests execution times]{Requests execution times}
+\end{center}
+\end{table}
+
+
+\paragraph{Packets specific metrics} \hfill \\
+\paragraph{System Calls execution times} \hfill \\
+\begin{table}
+\begin{center}
+  \begin{tabular}{l||c|c}
+  	\toprule
+  	Metric				&	PF\_INET	&	PF\_SERVAL	\\
+  	\midrule
+    Packets/request		&	10			&	15			\\
+    Bytes/request		&	922			&	1392		\\
+    \bottomrule
+  \end{tabular}
+  \caption[Benchmark: Packets and bytes exchanged per request]{Packets and bytes exchanged per request}
 \end{center}
 \end{table}
