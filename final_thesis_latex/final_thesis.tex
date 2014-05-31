@@ -14,6 +14,7 @@
 \usepackage{listings}
 \usepackage{caption}
 \usepackage{booktabs}
+\usepackage{float}
 
 \input{custom_listings.tex}
 \makenomenclature
@@ -22,7 +23,7 @@
 
 \newcommand{\chapterpage}[2]{
 	\newpage
-	\pagestyle{empty}
+	\thispagestyle{empty}
 	\phantomsection
 	\addcontentsline{toc}{part}{#1}
 	{\Huge \bf \noindent #2}
@@ -150,6 +151,7 @@ Then, in the following two sections, it is outlined the theoretical background a
 \input{serval.tex}
 
 
+\iffalse
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Chapter: Relative Bibliography
 \chapterpage{Relative Bibliography}{RELATIVE BIBLIOGRAPHY}
@@ -168,6 +170,7 @@ Brief summaries can be found in Appendix at the end of the report.
 \subsubsection{i3}
 
 \subsection{Application Layer - }
+\fi
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -190,14 +193,6 @@ Cloud computing
 A well thought Service centric architecture provides two things
 the right abstractions for services (developers and users)
 a service-aware control plane
-
-\begin{figure}
-\centering
-\phantomsection
-\includegraphics[scale=0.6]{figures/ECCP_sm}
-\label{fig:EECP_sm}
-\caption[The ECCP state machine]{The ECCP \cite{Arye2012} state machine.}
-\end{figure}
 
 So that control plane could be merged with software defined networking apis
 sdn apis that have control over the fabric of the network
@@ -255,7 +250,16 @@ User Serval as it is, but with a Distributed Service Resolution Service
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Appendix
 \chapterpage{Appendix}{APPENDIX}
+\pagestyle{empty}
 \label{sec:appendix}
 \input{appendix.tex}
 
+\newpage
+\phantomsection
+\vspace*{\fill}
+\hrulefill \\
+\begin{center}
+Isaakidis Marios -- misaakidis@yahoo.gr\\
+Cyprus University of Technology, 2014
+\end{center}
 \end{document}
