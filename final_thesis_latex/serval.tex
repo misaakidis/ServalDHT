@@ -14,7 +14,7 @@ In the end, they focus on the SAL prototype and the lessons learned from buildin
 
 
 \subsection{Proposed abstractions}
-As will be discussed later on at the section "Review of Relative Bibliography" (\ref{sec:reviewbibliography}), various abstractions have been proposed in order to support the concept of Service-Centric networking.
+As expected for a problem with such a significance, various abstractions have been proposed in order to support the concept of Service-Centric networking.
 Deciding the right abstractions premises first the detailed understanding of where a problem resides, and then the genuine intuition for conceiving the simple yet powerful generalizations that better conform with the current and future needs.
 Those abstractions should be transparent enough for legacy ports and hot swapping with the prevalent systems, in the meantime powerful to break ground for future advancements.
 
@@ -69,21 +69,47 @@ Everything is settled by the SAL, and a provably correct end-host signalling pro
 When it comes to implementation, flowIDs are 32bit unsigned integers and are end-host specific.
 They are created during the synchronization of a new connection and are stored in SAL's flow table, serving as rules for demultiplexing incoming packets to the appropriate sockets.
 Source and destination flowIDs are also part of the Serval header in every packet, sitting in the first 64 bits following the IP header.
-FlowIDs are persistent throughout the life of the socket, no matter the modifications of any of the values of the five tuple.
+FlowIDs are persistent throughout the lifecycle of the socket, no matter the modifications of any of the values of the five tuple.
+
+
+
+\subsection{Service-Level Routing} 
+No need for deep packet inspection in load balancers
+
+
+
+\subsubsection{Late binding}
 
 
 
 \subsection{Service Resolution}
-Those service names in a deeper level get mapped to 
-human readable strings similar to domain names, for identifying services.
-regardless it's geographical position, the port it is bound, 
-elevates services to first-class citizens in the management of the network control plane.
+Service names by definition are human readable strings similar to domain names, for identifying services.
+Consequently they are in a format that is incompatible to Serval active sockets API.
+A service is needed, for mapping those hexadecimal strings to serviceIDs, so they can traverse the network in the service-level routing process described in the previous section.
 
+Serval does not dictate the way service names are resolved to service instances.
+In this section we discuss the different approaches in service resolution, a crucial component of any architecture that aims to be adopted in a wide scale.
+
+What we consider important highlighting, is the belief that not always all clients will want to be part of the same service resolution scheme.
+In the beginning of the chapter, we discussed the specificities of consumer and peer-to-peer networks.
+Based on today's Internet status, it is safe to assume that the hierarchical resolution model with managing authorities could prevail.
+But we can be sure that independent, flat resolution services will emerge in a completely separate namespace, over the same or different network wiring.
+Still, developers are the ones who will make the final decision on how client applications resolve a serviceID and reach a service instance, much alike the way it is now.
+
+
+
+\subsubsection{Resolution based on a priori knowledge}
+Like in the beginning of the Internet, for the moment Serval applications use hardcoded serviceIDs to reach a service.
+Violating in a way the service name abstraction, in this transitional stage, serviceIDs are either defined as constants or passed to the program as arguments.
+A preordained hashing algorithm and other conventions are used for orchestrating the service registration and resolution, defining in a manner the namespace bounds.
+This technique can also be useful in ad hoc (computer-to-computer) networks, when a client needs to reach a service and there are no service resolution services available.
 
 
 \subsubsection{Hierarchical Resolution}
 \label{sec:hierresol}
-Relative to today's domain name system, those serviceIDs can be mapped to human-readable strings, much like URIs.
+Relative to today's domain name system, serviceIDs, much like URIs.
+
+In datacenters
 
 
 
@@ -92,26 +118,20 @@ Another approach suggests that serviceIDs are calculated by a hash function on a
 This practice of a \emph{semantic-free, flat} namespace better supports networks without a hierarchical structure, like datacenter and Wide Area networks.
 By semantic-free\cite{Walfisha2004} reference we mean that by default 
 
-Extra points go to Serval for being transport-protocol agnostic.
-This means that developers may choose to use either TCP, UDP\nomenclature{UDP}{User Datagram Protocol}, ATP\nomenclature{ATP}{AppleTalk Transaction Protocol}, FCP\nomenclature{FCP}{Fibre Channel Protocol} or actually any transport protocol, since it is supported by SAL, without modifying the source code of their application.
-This opens new windows for experimentation and innovation.
+few bootstraping nodes
 
-\subsection{Service-Level Routing} 
-No need for deep packet inspection in load balancers
-
-
-\subsubsection{Late binding}
+In datacenters
 
 
 
 \subsection{Serval Network Stack}
-Extra points go to Serval for being transport-protocol agnostic.
-This means that developers may choose to use either TCP, UDP\nomenclature{UDP}{User Datagram Protocol}, ATP\nomenclature{ATP}{AppleTalk Transaction Protocol}, FCP\nomenclature{FCP}{Fibre Channel Protocol} or actually any transport protocol, since it is supported by SAL, without modifying the source code of their application.
-This opens new windows for experimentation and innovation.
 
 
 
 \subsubsection{Service Access Layer}
+Extra points go to Serval for being transport-protocol agnostic.
+This means that developers may choose to use either TCP, UDP\nomenclature{UDP}{User Datagram Protocol}, ATP\nomenclature{ATP}{AppleTalk Transaction Protocol}, FCP\nomenclature{FCP}{Fibre Channel Protocol} or actually any transport protocol, since it is supported by SAL, without modifying the source code of their application.
+This opens new windows for experimentation and innovation.
 
 
 
@@ -120,6 +140,7 @@ This opens new windows for experimentation and innovation.
 
 
 \subsection{Service Controller}
+elevates services to first-class citizens in the management of the network control plane.
 
 
 
