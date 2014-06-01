@@ -54,4 +54,5 @@ Everything is settled by the SAL, and a provably correct end-host signalling pro
 When it comes to implementation, flowIDs are 32bit unsigned integers and are end-host specific.
 They are created during the synchronization of a new connection and are stored in SAL's flow table, serving as rules for demultiplexing incoming packets to the appropriate sockets.
 Source and destination flowIDs are also part of the Serval header in every packet, sitting in the first 64 bits following the IP header.
-FlowIDs are persistent throughout the lifecycle of the socket, no matter the modifications of any of the values of the five tuple.
+FlowIDs are persistent, no matter the modifications of any of the values of the five tuple.
+Furthermore SAL might assign multiple flows in the same socket, and change them dynamically during its lifetime, in order to ensure maximum bandwidth and continuous connectivity.
