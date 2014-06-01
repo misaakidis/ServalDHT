@@ -13,21 +13,20 @@ In the end, they focus on the SAL prototype and the lessons learned from buildin
 
 
 
-\subsection{Proposed abstractions}
-As expected for a problem with such a significance, various abstractions have been proposed in order to support the concept of Service-Centric networking.
-Deciding the right abstractions premises first the detailed understanding of where a problem resides, and then the genuine intuition for conceiving the simple yet powerful generalizations that better conform with the current and future needs.
-Those abstractions should be transparent enough for legacy ports and hot swapping with the prevalent systems, in the meantime powerful to break ground for future advancements.
-
-We appraise the Serval abstractions of \emph{Service Names} and \emph{Flow Identifiers} for being a great solution on the overloading of identifiers within and across the present TCP/IP stack.
-Also, for the tight fit of those abstractions in the separation of data and control plane.
-Finally, it is remarkable how the adoption of those abstractions requires minimal if no modifications at all in the infrastructure that powers networks today.
-
-
 \input{abstractions.tex}
 
 
 \newpage
-\subsection{Service-Level Routing} 
+\subsection{Service-Level Routing}
+\begin{figure}
+\centering
+\phantomsection
+\includegraphics[scale=0.3]{figures/service_level_routing}
+\caption[Service-Level Routing]{Service-level Routing based on serviceIDs}
+\label{fig:ser_resol}
+\end{figure}
+
+
 No need for deep packet inspection in load balancers
 
 
@@ -42,10 +41,32 @@ No need for deep packet inspection in load balancers
 
 \newpage
 \subsection{Serval Network Stack}
+Unlike other next-generation networking proposals, Serval is neither running in the user space, nor is using a translator.
+Nevertheless, it does not replace the existing network stack.
+Serval is implemented in a kernel module which places itself within an unmodified stack, coexisting with it.
+This way developers may choose to use either PF\_INET or PF\_SERVAL, or even both of them in a single application.
 
+In this section we are concentrating on SAL, the Service Access Layer, which offers functionality any
+networked service application could use.
 
 
 \subsubsection{Service Access Layer}
+
+\begin{figure}
+\centering
+\phantomsection
+\includegraphics[scale=0.3]{figures/sal_position}
+\caption[Service Access Layer position]{Service Access Layer position in the OSI model}
+\label{fig:sal_position}
+\end{figure}
+
+The Service Access Layer (SAL) is the keystone of the Serval architecture.
+Shipped as serval.ko kernel module, SAL bridges the gap between the application layer and the network layer, and undertakes the operations of Serval active sockets, service resolution, end-to-end signalling, service registration and so on.
+In fact, all the "magic" behind Serval is implemented in this module, which can be virtually positioned between the Network and the Transport layers in the OSI model (figure \ref{fig:sal_position}).
+
+hide ip etc
+
+
 Extra points go to Serval for being transport-protocol agnostic.
 This means that developers may choose to use either TCP, UDP\nomenclature{UDP}{User Datagram Protocol}, ATP\nomenclature{ATP}{AppleTalk Transaction Protocol}, FCP\nomenclature{FCP}{Fibre Channel Protocol} or actually any transport protocol, since it is supported by SAL, without modifying the source code of their application.
 This opens new windows for experimentation and innovation.
@@ -56,7 +77,7 @@ This opens new windows for experimentation and innovation.
 Serval packets are constructed in SAL, using from bottom to top the network layer IP header, Serval header and extensions, and a transport protocol's headers.
 
 Physical, datalink and network layer headers are the common ones one would expect to find.
-This is because SAL is not taking involved in exchanging packets in any level.
+This is because SAL is not involved in exchanging packets in any level.
 Therefore until a packet reaches SAL (service table and flow table), it is processed by middleware as a normal TCP/IP packet in order to reach its final destination.
 This feature makes Serval compatible with existing hardware and could assist in its incremental deployment.
 

@@ -16,8 +16,10 @@
 \usepackage{booktabs}
 \usepackage{float}
 \usepackage{tabularx}
+\usepackage{xr}
 
 \def\tabularxcolumn#1{m{#1}}
+\externaldocument{*}
 
 \input{custom_listings.tex}
 \makenomenclature
@@ -193,6 +195,15 @@ Cloud computing
 
 \newpage
 \section{Service-centric architectures and SDN}
+
+\begin{figure}
+\centering
+\phantomsection
+\includegraphics[scale=0.3]{figures/SAL_plane_split}
+\caption[Control/Data plane separation in Serval]{Control/Data plane separation in Serval}
+\label{fig:sal_plane_split}
+\end{figure}
+
 A well thought Service centric architecture provides two things
 the right abstractions for services (developers and users)
 a service-aware control plane
