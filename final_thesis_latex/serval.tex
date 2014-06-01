@@ -15,7 +15,7 @@ In the end, they focus on the SAL prototype and the lessons learned from buildin
 
 \input{abstractions.tex}
 
-
+\iffalse
 \newpage
 \subsection{Service-Level Routing}
 \begin{figure}
@@ -25,21 +25,15 @@ In the end, they focus on the SAL prototype and the lessons learned from buildin
 \caption[Service-Level Routing]{Service-level Routing based on serviceIDs}
 \label{fig:ser_resol}
 \end{figure}
-
-
 No need for deep packet inspection in load balancers
-
-
-
 \subsubsection{Late binding}
+\fi
+
+
+\input{serviceresolution.tex}
 
 
 
-\include{serviceresolution.tex}
-
-
-
-\newpage
 \subsection{Serval Network Stack}
 Unlike other next-generation networking proposals, Serval is neither running in the user space, nor is using a translator.
 Nevertheless, it does not replace the existing network stack.
@@ -61,15 +55,36 @@ networked service application could use.
 \end{figure}
 
 The Service Access Layer (SAL) is the keystone of the Serval architecture.
-Shipped as serval.ko kernel module, SAL bridges the gap between the application layer and the network layer, and undertakes the operations of Serval active sockets, service resolution, end-to-end signalling, service registration and so on.
+Shipped as serval.ko kernel module, SAL bridges the gap between the application layer and the network layer, and undertakes the operations of service resolution, end-to-end signalling, service registration and so on.
+Also it provides the hooks for applications to use Serval active sockets.
 In fact, all the "magic" behind Serval is implemented in this module, which can be virtually positioned between the Network and the Transport layers in the OSI model (figure \ref{fig:sal_position}).
 
-hide ip etc
+SAL is consisted by two tables, the Service table and the Flow table.
+The Service table, the core behind service-level data plane, contains the rules that correspond to incoming packets with SAL headers and outgoing requests.
+The Flow table maps installs rules for demultiplexing traffic to the appropriate active socket.
 
+\paragraph{Service Table} The Service table contains rules which correspond to one of the following actions:
+\begin{enumerate} \itemsep1pt \parskip0pt 
+\parsep0pt
+  \item \emph{FORWARD}: forwards the packet to the defined IP address.
+  That address can also be a multicast, or the IP address of a Service Router. \nomenclature{SV}{Service Router}
+  \item \emph{DEMUX}: Demultiplex the packet according to Flow table entries.
+  \item \emph{DELAY}: Queue the packet and notify the Service Controller.
+  \item \emph{DROP}: Discard the packet.
+\end{enumerate}
+
+\paragraph{Flow Table} The flow table 
+
+SAL's position below the transport layer 
 
 Extra points go to Serval for being transport-protocol agnostic.
 This means that developers may choose to use either TCP, UDP\nomenclature{UDP}{User Datagram Protocol}, ATP\nomenclature{ATP}{AppleTalk Transaction Protocol}, FCP\nomenclature{FCP}{Fibre Channel Protocol} or actually any transport protocol, since it is supported by SAL, without modifying the source code of their application.
 This opens new windows for experimentation and innovation.
+
+
+hide ip etc
+
+
 
 
 
@@ -133,6 +148,15 @@ Source code and instructions are attached in the Appendix \ref{sec:wirlua}.
 
 \newpage
 \subsection{Service Controller}
+
+\begin{figure}
+\centering
+\phantomsection
+\includegraphics[scale=0.4]{figures/establishing_connection}
+\caption[Service Resolution with Service Routers]{Service Resolution with Service Routers}
+\label{fig:sal_position}
+\end{figure}
+
 elevates services to first-class citizens in the management of the network control plane.
 
 
