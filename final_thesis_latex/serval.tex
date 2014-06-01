@@ -57,11 +57,15 @@ networked service application could use.
 The Service Access Layer (SAL) is the keystone of the Serval architecture.
 Shipped as serval.ko kernel module, SAL bridges the gap between the application layer and the network layer, and undertakes the operations of service resolution, end-to-end signalling, service registration and so on.
 Also it provides the hooks for applications to use Serval active sockets.
-In fact, all the "magic" behind Serval is implemented in this module, which can be virtually positioned between the Network and the Transport layers in the OSI model (figure \ref{fig:sal_position}).
+In fact, all the "magic" behind Serval is implemented in this module, which can be virtually positioned between the Network and the Transport layers in the OSI\nomenclature{OSI}{Open Systems Interconnection model} model (figure \ref{fig:sal_position}).
 
-SAL is consisted by two tables, the Service table and the Flow table.
-The Service table, the core behind service-level data plane, contains the rules that correspond to incoming packets with SAL headers and outgoing requests.
-The Flow table maps installs rules for demultiplexing traffic to the appropriate active socket.
+Extra points go to SAL for being positioned below the transport layer, therefore being transport-protocol agnostic.
+This means that developers may choose to use either TCP, UDP\nomenclature{UDP}{User Datagram Protocol}, ATP\nomenclature{ATP}{AppleTalk Transaction Protocol}, FCP\nomenclature{FCP}{Fibre Channel Protocol} or actually any transport protocol, since it is supported by SAL, without modifying the source code of their application.
+This opens new windows for experimentation and innovation.
+
+SAL is consisted of two tables, the Service table and the Flow table.
+The Service table, the core behind the service-level data plane, contains the rules that correspond to incoming packets with SAL headers and outgoing requests.
+The Flow table contains rules for demultiplexing traffic to the appropriate active socket.
 
 \paragraph{Service Table} The Service table contains rules which correspond to one of the following actions:
 \begin{enumerate} \itemsep1pt \parskip0pt 
@@ -75,15 +79,10 @@ The Flow table maps installs rules for demultiplexing traffic to the appropriate
 
 \paragraph{Flow Table} The flow table 
 
-SAL's position below the transport layer 
-
-Extra points go to Serval for being transport-protocol agnostic.
-This means that developers may choose to use either TCP, UDP\nomenclature{UDP}{User Datagram Protocol}, ATP\nomenclature{ATP}{AppleTalk Transaction Protocol}, FCP\nomenclature{FCP}{Fibre Channel Protocol} or actually any transport protocol, since it is supported by SAL, without modifying the source code of their application.
-This opens new windows for experimentation and innovation.
-
-
-hide ip etc
-
+SAL's position below the transport layer makes it necessary to have a mechanism for decoupling incoming traffic with a DEMUX rule on the service table, to the appropriate socket.
+The flow table is responsible exactly for that.
+Rules are inserted and removed as soon as there is a change in the flows or the sockets, for example when a socket is closed or when SAL decides to add a new flow to a different interface for an existing socket.
+A flow table entry is a simple $<$FlowID, Socket$>$ tuple.
 
 
 
@@ -157,7 +156,13 @@ Source code and instructions are attached in the Appendix \ref{sec:wirlua}.
 \label{fig:sal_position}
 \end{figure}
 
-elevates services to first-class citizens in the management of the network control plane.
+Service controller is the key differentiator factor of Serval that elevates services to first-class citizens in the management of the network control plane.
+Implemented as a daemon running in the user space, the service controller has direct access to the service table in SAL.
+Therefore it can be handy when control-plane logic is needed, as for example in a DELAY action rule in the service table.
+
+Also the Service Controller can out-band communicate with other controllers, distributively deciding the appropriate actions for managing service table entries.
+Nevertheless, a network-wide centralized controller could be the one setting service rules in each Serval-enabled node.
+This possibility opens new horizons in how next-generation networks could be dynamically configured. 
 
 
 
