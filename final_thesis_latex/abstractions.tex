@@ -1,0 +1,46 @@
+\subsubsection{Service Names}
+The main idea behind Service-Centric Networking is that nowadays network users request services by their names and are completely agnostic of the underlying procedures.
+Hereby an abstraction is needed for identifying a service, resolving and of course effectively routing a request to an instance of that service, according to specific rules.
+For that reason Serval introduces service names, or \emph{serviceIDs}.
+
+ServiceIDs are large (256 bit long) strings, that correspond to a service, or a group of services.
+Part of Serval packets as a Service Access Extension header in the synchronization process (SYN and SYN-ACK flags in ECCP state machine figure \ref{fig:EECP_sm}), serviceIDs assist in resolution, late binding and service-level routing.
+Furthermore they are used as persistent, global identifiers for easier handling of replicated services, virtual machine migrations or mobile hosts, when there is a need for end-point signaling.
+
+What is unique about Serval's abstraction of service identifiers is that since they are managed by the SAL, they are positioned below the transport layer.
+Jointly with Serval active sockets, the abstraction of service names obscures host identifiers (IP and Port) from the application layer, but stills offers powerful, familiar APIs\nomenclature{API}{Application Programming Interface} to networked application developers.
+
+Notably, likewise to IP hierarchical notation, serviceIDs can well support a hierarchical address assigning scheme.
+In other words, serviceID blocks can be allocated to service providers to assign to their own applications, in a long-prefix matching settlement.
+We are discussing extensively hierarchical resolution later on section \ref{sec:hierresol}.
+
+To sum up, in an elegant way serviceIDs promote services to the principal entities in the network, by giving applications intermediate access to the service control plane and a
+And it manages to do so while hiding unneeded abstractions, such as the $<IP, port>$ tuple.
+
+
+
+\subsubsection{End-host flow identifiers}
+The other problem Serval is intending to counteract, is the limitations of PF\_INET sockets' tight binding to the stack.
+Since the one responsible for demultiplexing incoming packets is the transport layer, and does so based on identifiers confined to local and remote interfaces, modifying any of those identifiers breaks the connection.
+Then is appointed to the protocol to take action in restoring the communication channel.
+This issue causes diminished connectivity mutability, forces the overloading of the five tuple $<remote IP, remote port, local IP, local port, protocol>$ across the network stack, and requires the re-implementation of failover functionality by individual protocols.
+
+Serval, and specifically the Service Access Layer, detaches the process of local demultiplexing and provides to the upper layers a single identifier: the \emph{flowID}.
+Flows, a notion used before to describe "virtual" network streams, find place in the SAL as the abstraction of socket numbers.
+They resemble, in a way, a direct pointer to the local and remote sockets, no matter in which interface, IP address or port they are connected.
+
+\begin{figure}
+\centering
+\phantomsection
+\includegraphics[scale=0.6]{figures/ECCP_sm}
+\caption[The ECCP state machine]{The ECCP \cite{Arye2012} state machine.}
+\label{fig:EECP_sm}
+\end{figure}
+
+This gives the freedom to applications --or even virtual machines-- establish multiple flows, possibly in different interfaces, push and receive traffic to any of them (or a combination of them, increasing bandwidth), without implementing any additional functionality in the protocol residing in the transport layer, or the application.
+Everything is settled by the SAL, and a provably correct end-host signalling protocol (figure \ref{fig:EECP_sm}).
+
+When it comes to implementation, flowIDs are 32bit unsigned integers and are end-host specific.
+They are created during the synchronization of a new connection and are stored in SAL's flow table, serving as rules for demultiplexing incoming packets to the appropriate sockets.
+Source and destination flowIDs are also part of the Serval header in every packet, sitting in the first 64 bits following the IP header.
+FlowIDs are persistent throughout the lifecycle of the socket, no matter the modifications of any of the values of the five tuple.

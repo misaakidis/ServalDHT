@@ -23,56 +23,10 @@ Also, for the tight fit of those abstractions in the separation of data and cont
 Finally, it is remarkable how the adoption of those abstractions requires minimal if no modifications at all in the infrastructure that powers networks today.
 
 
-
-\subsubsection{Service Names}
-The main idea behind Service-Centric Networking is that nowadays network users request services by their names and are completely agnostic of the underlying procedures.
-Hereby an abstraction is needed for identifying a service, resolving and of course effectively routing a request to an instance of that service, according to specific rules.
-For that reason Serval introduces service names, or \emph{serviceIDs}.
-
-ServiceIDs are large (256 bit long) strings, that correspond to a service, or a group of services.
-Part of Serval packets as a Service Access Extension header in the synchronization process (SYN and SYN-ACK flags in ECCP state machine figure \ref{fig:EECP_sm}), serviceIDs assist in resolution, late binding and service-level routing.
-Furthermore they are used as persistent, global identifiers for easier handling of replicated services, virtual machine migrations or mobile hosts, when there is a need for end-point signaling.
-
-What is unique about Serval's abstraction of service identifiers is that since they are managed by the SAL, they are positioned below the transport layer.
-Jointly with Serval active sockets, the abstraction of service names obscures host identifiers (IP and Port) from the application layer, but stills offers powerful, familiar APIs\nomenclature{API}{Application Programming Interface} to networked application developers.
-
-Notably, likewise to IP hierarchical notation, serviceIDs can well support a hierarchical address assigning scheme.
-In other words, serviceID blocks can be allocated to service providers to assign to their own applications, in a long-prefix matching settlement.
-We are discussing extensively hierarchical resolution later on section \ref{sec:hierresol}.
-
-To sum up, in an elegant way serviceIDs promote services to the principal entities in the network, by giving applications intermediate access to the service control plane and a
-And it manages to do so while hiding unneeded abstractions, such as the $<IP, port>$ tuple.
+\input{abstractions.tex}
 
 
-
-\subsubsection{End-host flow identifiers}
-The other problem Serval is intending to counteract, is the limitations of PF\_INET sockets' tight binding to the stack.
-Since the one responsible for demultiplexing incoming packets is the transport layer, and does so based on identifiers confined to local and remote interfaces, modifying any of those identifiers breaks the connection.
-Then is appointed to the protocol to take action in restoring the communication channel.
-This issue causes diminished connectivity mutability, forces the overloading of the five tuple $<remote IP, remote port, local IP, local port, protocol>$ across the network stack, and requires the re-implementation of failover functionality by individual protocols.
-
-Serval, and specifically the Service Access Layer, detaches the process of local demultiplexing and provides to the upper layers a single identifier: the \emph{flowID}.
-Flows, a notion used before to describe "virtual" network streams, find place in the SAL as the abstraction of socket numbers.
-They resemble, in a way, a direct pointer to the local and remote sockets, no matter in which interface, IP address or port they are connected.
-
-\begin{figure}
-\centering
-\phantomsection
-\includegraphics[scale=0.6]{figures/ECCP_sm}
-\caption[The ECCP state machine]{The ECCP \cite{Arye2012} state machine.}
-\label{fig:EECP_sm}
-\end{figure}
-
-This gives the freedom to applications --or even virtual machines-- establish multiple flows, possibly in different interfaces, push and receive traffic to any of them (or a combination of them, increasing bandwidth), without implementing any additional functionality in the protocol residing in the transport layer, or the application.
-Everything is settled by the SAL, and a provably correct end-host signalling protocol (figure \ref{fig:EECP_sm}).
-
-When it comes to implementation, flowIDs are 32bit unsigned integers and are end-host specific.
-They are created during the synchronization of a new connection and are stored in SAL's flow table, serving as rules for demultiplexing incoming packets to the appropriate sockets.
-Source and destination flowIDs are also part of the Serval header in every packet, sitting in the first 64 bits following the IP header.
-FlowIDs are persistent throughout the lifecycle of the socket, no matter the modifications of any of the values of the five tuple.
-
-
-
+\newpage
 \subsection{Service-Level Routing} 
 No need for deep packet inspection in load balancers
 
@@ -82,56 +36,11 @@ No need for deep packet inspection in load balancers
 
 
 
-\subsection{Service name Resolution}
-Service names by definition are human readable strings similar to domain names, for identifying services.
-Consequently they are in a format that is incompatible to Serval active sockets API.
-A method is needed, for mapping those hexadecimal strings to serviceIDs, so they can traverse the network in the service-level routing process described in the previous section.
-
-Serval does not dictate the way service names are resolved to service instances.
-In this section we discuss the different approaches in service resolution, a crucial component of any architecture that aims to be adopted in a wide scale.
-
-What we consider important highlighting, is the belief that not always all clients will want to be part of the same service resolution scheme.
-In the beginning of the chapter, we discussed the specificities of consumer and peer-to-peer networks.
-Based on today's Internet status, it is safe to assume that the hierarchical resolution model with managing authorities could prevail.
-But we can be sure that independent, flat resolution services will emerge in a completely separate namespace, over the same or different network wiring.
-Still, developers are the ones who will make the final decision on how client applications resolve a service name and reach a service instance, much alike the way it is now.
+\include{serviceresolution.tex}
 
 
 
-\subsubsection{Resolution based on a priori knowledge}
-Like in the beginning of the Internet, for the moment Serval applications use hardcoded serviceIDs to reach a service.
-Violating in a way the service name abstraction, in this transitional stage, serviceIDs are either defined as constants or passed to the program as arguments.
-A preordained hashing algorithm and other conventions are used for orchestrating the service registration and resolution, defining in a manner the namespace bounds.
-
-This technique can also be useful in ad hoc (computer-to-computer) networks, when a client needs to reach a service and there are no service resolution services available.
-As well as for supporting bootstrapping in other resolution schemes --in the same way as resolv.conf and port 53 are used now, or a list of nodes is pre-fetched in torrent (DHT) applications.
-
-
-\subsubsection{Hierarchical Resolution}
-\label{sec:hierresol}
-Much like to the current domain name system domains \nomenclature{URI}{Uniform Resource Locator}, serviceIDs could be managed by an authoritative organization.
-This fits well with serviceIDs' potentiality of being allocated as blocks, to organizations and individuals to manage in a longest-prefix match way.
-
-We can imagine a service similar to resolver, mapping a service name to a serviceID.
-Lookups will be forwarded recursively to a greater level if they cannot be answered.
-Different hierarchical resolution servers might exist and clients should be able to select which one to use by default.
-Network administrators might want to setup private service name resolvers, for caching functionality, blocking specific service names (or a block of serviceIDs), or adding new service name to serviceID relations.
-
-
-
-\subsubsection{Flat Resolution Schemes}
-Another approach suggests that serviceIDs are calculated by a hash function on a service prefix and an application-level instance unique key.
-This practice of a \emph{semi semantic-free, flat} namespace better supports networks without a hierarchical structure, like datacenter and Wide Area networks.
-By semi semantic-free\cite{Walfisha2004} reference (SFR\nomenclature{SFR}{Semantic Free Reference}) we mean that service identifiers are completely independent by topological, network, or any other element of.
-
-Actually 
-
-few bootstraping nodes
-
-In datacenters
-
-
-
+\newpage
 \subsection{Serval Network Stack}
 
 
@@ -161,7 +70,7 @@ The structure, is presented in table~\ref{table:salheader}.
   \item The next byte, marked as SAL Header Length, gives the total SAL header length, including extensions, in 4byte words.
   For a packet that carries payload and no extensions the value is 3.
   \item The 10th byte indicates the protocol of the transport layer which is used; 6 for TCP and 17 for UDP.
-  \item The last 2 bytes of the header is used as checksum.
+  \item The last 2 bytes of the header are used as checksum.
 \end{enumerate}
 
 \begin{table}
@@ -182,16 +91,26 @@ The structure, is presented in table~\ref{table:salheader}.
 During the initialization of a connection, destination flowID is zero (0).
 The next packet though returns both the flowID in the server side and the serviceID once again, to identify which service the response comes from; quite useful for the case of concurrent service resolution requests.
 
+\newpage
 When the SAL header length is greater than 3, then there are extensions in the header.
-There are 5 types of extensions: SAL_PAD_EXT, SAL_CONTROL_EXT, SAL_SERVICE_EXT, SAL_ADDRESS_EXT and SAL_SOURCE_EXT.
-In total the extensions do not exceed 10.
-The SAL_PAD_EXT is a special kind of header, of just 1 byte, which helps align the extensions to 8-byte blocks.
+There are 5 types of extensions:
+\begin{enumerate} \itemsep1pt \parskip0pt 
+\parsep0pt
+  \item SAL\_PAD\_EXT
+  \item SAL\_CONTROL\_EXT
+  \item SAL\_SERVICE\_EXT
+  \item SAL\_ADDRESS\_EXT
+  \item SAL\_SOURCE\_EXT
+\end{enumerate}
+In total the extensions included in a packet can not exceed 10.
+\\ The SAL\_PAD\_EXT is a special kind of header, of just 1 byte, which helps align the extensions to 8-byte blocks.
+\\[0.2cm]
+\noindent For easier debugging of Serval packets, we created a LUA Wireshark dissector.
+Source code and instructions are attached in the Appendix \ref{sec:wirlua}.
 
-For easier debugging of Serval packets, we created a LUA Wireshark dissector.
-Source code and instructions are attached in the Appendix~\ref{section:wirlua}.
 
 
-
+\newpage
 \subsection{Service Controller}
 elevates services to first-class citizens in the management of the network control plane.
 
