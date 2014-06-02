@@ -160,6 +160,8 @@ Service controller is the key differentiator factor of Serval that elevates serv
 Implemented as a daemon running in the user space, the service controller has direct access to the service table in SAL.
 Therefore it can be handy when control-plane logic is needed, as for example in a DELAY action rule in the service table.
 
+Continuously listening for service-releated events, yet living in the user-space, Service Controller is the most suitable candidate for updating 3rd-party concerned systems, such as a load balancer or DNS, or even a central Software Defined Networking Controller.
+
 Also the Service Controller can out-band communicate with other controllers, distributively deciding the appropriate actions for managing service table entries.
 Nevertheless, a network-wide centralized controller could be the one setting service rules in each Serval-enabled node.
 This possibility opens new horizons in how next-generation networks could be dynamically configured. 

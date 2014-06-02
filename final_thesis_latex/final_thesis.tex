@@ -145,7 +145,9 @@ Then, in the following two sections, it is outlined the theoretical background a
 \chapterpage{Problem Definition}{PROBLEM DEFINITION}
 
 \input{defining_the_problem.tex}
+\iffalse
 \input{importance_of_the_problem.tex}
+\fi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Chapter: Service-Centric Networking
@@ -185,75 +187,8 @@ Brief summaries can be found in Appendix at the end of the report.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Chapter: Service-Aware Networking
 \chapterpage{Service-Aware Networking}{SERVICE-AWARE\\[0.2cm]NETWORKING}
-\section{Rethinking the Internet experience}
-%I HAVE A DREAM
-Cloud computing
-\\Modularity
-\\anonymity, privacy
-\\authentication, accountability, encryption, security
-\\no middlewares
-\\TCP/IP stack data, controller functionality
-\\subnetworks
-\\mobility and multihoming
-\\independent from organizations
+\input{service-aware.tex}
 
-\newpage
-\section{Service-centric architectures and SDN}
-
-\begin{figure}
-\centering
-\phantomsection
-\includegraphics[scale=0.3]{figures/SAL_plane_split}
-\caption[Control/Data plane separation in Serval]{Control/Data plane separation in Serval}
-\label{fig:sal_plane_split}
-\end{figure}
-
-A well thought Service centric architecture provides two things
-the right abstractions for services (developers and users)
-a service-aware control plane
-
-So that control plane could be merged with software defined networking apis
-sdn apis that have control over the fabric of the network
-
-as a result: sal can manipulate the virtual network
-dynamic policy-driven networking
-split control (sal AND sdn controller decide)
-distributed management
-immediate effect
-larger scale service-level routing
-
-\subsection{Scenario: Service Registration as a Network Policy}
-Scenario:
-service registration as policy
-
-\newpage
-\section{Service-Aware Networking and Cloud Networks}
-How can we take advantage of the above mentioned results in cloud networks?
-why cloud fits the description
-
-\iffalse
-\newpage
-\section{Introduction to the Proposed Solution}
-User Serval as it is, but with a Distributed Service Resolution Service
-\\Based on DHT algorithms
-\\Run by tier-1 and ISPs, or by users in Autonomous networks
-\\Secure identifiers
-\\Flat namespace
-\\Gets serviceID and
-\\- either returns the (IP,Port) back to the client
-\\- or forwards the packet directly to the service provider
-\\- caches the (serviceID, IP) tuple for future use
-\\Incrementally deployable and backwards compatible
-\\written in C, running in the user space
-\\accept service registration, checks HIP and inform the relative nodes
-\\About the Service Controller:
-\\will be running as a daemon in the userspace
-\\will communicate with ServalDHT to resolve serviceIDs (hashed service names)
-\\will enable delegation, load balancing etc as modules (maybe a configuration file?)
-\\Draw a FSM for the SRS \nomenclature{SRS}{Service Resolution Service} (http://madebyevan.com/fsm/)
-\fi
-
-\input{future_research.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
@@ -265,6 +200,7 @@ User Serval as it is, but with a Distributed Service Resolution Service
 \bibliographystyle{plain}
 \renewcommand{\refname}{}
 \bibliography{bibliography}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Appendix
